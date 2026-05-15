@@ -1,0 +1,78 @@
+import { Category } from "./schema";
+
+const now = new Date().toISOString();
+
+export const DEFAULT_CATEGORIES: Category[] = [
+  {
+    id: "00000000-0000-0000-0000-000000000001",
+    name: "Food & Drinks",
+    color: "#FF6B6B",
+    icon: "UtensilsCrossed",
+    sortOrder: 0,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000002",
+    name: "Transport",
+    color: "#4ECDC4",
+    icon: "Car",
+    sortOrder: 1,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000003",
+    name: "Shopping",
+    color: "#FFE66D",
+    icon: "ShoppingBag",
+    sortOrder: 2,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000004",
+    name: "Bills",
+    color: "#A8E6CF",
+    icon: "FileText",
+    sortOrder: 3,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000005",
+    name: "Entertainment",
+    color: "#FF8B94",
+    icon: "Gamepad2",
+    sortOrder: 4,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000006",
+    name: "Health",
+    color: "#88D8C0",
+    icon: "Heart",
+    sortOrder: 5,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000007",
+    name: "Travel",
+    color: "#FFA07A",
+    icon: "Plane",
+    sortOrder: 6,
+    isDefault: true,
+    createdAt: now,
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000008",
+    name: "Other",
+    color: "#C3A6FF",
+    icon: "MoreHorizontal",
+    sortOrder: 7,
+    isDefault: true,
+    createdAt: now,
+  },
+];
