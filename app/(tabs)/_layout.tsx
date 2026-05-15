@@ -1,5 +1,31 @@
-import { Tabs } from "expo-router";
-import { LayoutDashboard, List, RefreshCw, Settings } from "lucide-react-native";
+import { Tabs, router } from "expo-router";
+import { Pressable, View } from "react-native";
+import { LayoutDashboard, List, Plus, RefreshCw, Settings } from "lucide-react-native";
+import { T } from "../../lib/theme";
+
+function CenterAddButton() {
+  return (
+    <Pressable
+      onPress={() => router.push("/add")}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+    >
+      {({ pressed }) => (
+        <View style={{
+          width: 44,
+          height: 44,
+          borderRadius: T.radius,
+          borderWidth: 1,
+          borderColor: pressed ? T.text.secondary : T.border,
+          backgroundColor: pressed ? T.elevated : T.surface,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Plus size={20} color={T.text.primary} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
 
 export default function TabLayout() {
   return (
@@ -15,7 +41,7 @@ export default function TabLayout() {
         },
         tabBarActiveTintColor: '#FFFFFF',
         tabBarInactiveTintColor: '#444444',
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 1 },
+        tabBarLabelStyle: { fontSize: 9, fontWeight: '600', letterSpacing: 1 },
       }}
     >
       <Tabs.Screen
@@ -30,6 +56,13 @@ export default function TabLayout() {
         options={{
           title: 'EXPENSES',
           tabBarIcon: ({ color }) => <List size={20} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="add-tab"
+        options={{
+          href: null,
+          tabBarButton: () => <CenterAddButton />,
         }}
       />
       <Tabs.Screen

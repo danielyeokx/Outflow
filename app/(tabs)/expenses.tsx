@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { View, Text, SectionList, Pressable, Alert } from "react-native";
+import { View, Text, SectionList, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { Plus } from "lucide-react-native";
 import { todayISO, addMonths, formatDate } from "../../lib/format";
 import { T } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
+import PageHeader from "../../components/PageHeader";
 import MonthHeader from "../../components/overview/MonthHeader";
 import { useExpenses } from "../../lib/queries";
 import { useDeleteExpense } from "../../lib/mutations";
@@ -37,28 +36,16 @@ export default function ExpensesScreen() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>
       <DotGrid />
 
-      {/* Header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View>
-          <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>SYS.LOG</Text>
-          <Text style={{ color: T.text.primary, fontSize: 22, fontWeight: '700', letterSpacing: 1, marginTop: 2 }}>EXPENSES</Text>
-        </View>
-        <Pressable
-          onPress={() => router.push("/add")}
-          style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.surface, alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Plus size={18} color={T.text.primary} />
-        </Pressable>
-      </View>
-
-      <View style={{ height: 1, backgroundColor: T.border, marginHorizontal: 20, marginBottom: 4 }} />
-
+      {/* Sticky header */}
+      <PageHeader sys="SYS.LOG" title="EXPENSES" />
       <MonthHeader
         monthISO={currentMonth}
-        onPrev={() => setCurrentMonth((m) => addMonths(m, -1))}
-        onNext={() => setCurrentMonth((m) => addMonths(m, 1))}
+        onPrev={() => setCurrentMonth(m => addMonths(m, -1))}
+        onNext={() => setCurrentMonth(m => addMonths(m, 1))}
       />
+      <View style={{ height: 1, backgroundColor: T.border }} />
 
+      {/* Scrollable content */}
       {sections.length === 0 && !isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: T.text.muted, fontSize: 12, letterSpacing: 2, fontFamily: 'SpaceMono-Regular', textAlign: 'center' }}>
@@ -70,9 +57,9 @@ export default function ExpensesScreen() {
           sections={sections}
           keyExtractor={(item) => item.id}
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
           renderSectionHeader={({ section: { title } }) => (
-            <View style={{ paddingVertical: 8, marginTop: 12 }}>
+            <View style={{ paddingVertical: 8, marginTop: 4 }}>
               <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>
                 {`// ${title.toUpperCase()}`}
               </Text>
