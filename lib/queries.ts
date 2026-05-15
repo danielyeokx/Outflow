@@ -90,6 +90,18 @@ export function useDailyTotals(monthISO: string) {
   });
 }
 
+export function useKeywordsForCategory(categoryId: string) {
+  return useQuery({
+    queryKey: ["keywords", categoryId],
+    queryFn: () =>
+      db
+        .select()
+        .from(learnedKeywords)
+        .where(eq(learnedKeywords.categoryId, categoryId))
+        .orderBy(learnedKeywords.keyword),
+  });
+}
+
 export function useLearnedKeywords() {
   return useQuery({
     queryKey: ["learned-keywords"],

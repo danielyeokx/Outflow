@@ -57,10 +57,9 @@ export default function RootLayout() {
         <MigrationGate>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="add"
-              options={{ presentation: "modal", headerShown: false }}
-            />
+            <Stack.Screen name="add" options={{ presentation: "modal" }} />
+            <Stack.Screen name="category/[id]" />
+            <Stack.Screen name="category/new" options={{ presentation: "modal" }} />
           </Stack>
         </MigrationGate>
       </QueryClientProvider>

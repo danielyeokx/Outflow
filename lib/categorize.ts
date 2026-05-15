@@ -92,6 +92,13 @@ export function normaliseKeyword(itemName: string): string {
   return itemName.toLowerCase().trim();
 }
 
+export function getStaticKeywordsForCategory(categoryId: string): string[] {
+  return Object.entries(KEYWORD_MAP)
+    .filter(([, cid]) => cid === categoryId)
+    .map(([kw]) => kw)
+    .sort();
+}
+
 export function suggestCategoryId(
   itemName: string,
   learnedMap: Record<string, string> = {}

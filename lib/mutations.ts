@@ -1,10 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "./db";
-import { expenses, learnedKeywords } from "./schema";
+import { expenses, learnedKeywords, categories } from "./schema";
 import { eq } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
+
+const CATEGORY_GRAYS = [
+  '#CCCCCC', '#AAAAAA', '#888888', '#EEEEEE',
+  '#BBBBBB', '#999999', '#666666', '#DDDDDD',
+];
 
 function newId(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -30,18 +35,22 @@ export function useAddExpense() {
         createdAt: new Date().toISOString(),
       });
 
-      // Learn keyword if no static rule matched — persist for future auto-pick
-      const keyword = normaliseKeyword(values.itemName);
-      const staticMatch = suggestCategoryId(values.itemName);
-      if (!staticMatch && keyword) {
-        await db
-          .insert(learnedKeywords)
-          .values({ keyword, categoryId: values.categoryId, updatedAt: new Date().toISOString() })
-          .onConflictDoUpdate({
-            target: learnedKeywords.keyword,
-            set: { categoryId: values.categoryId, updatedAt: new Date().toISOString() },
-          });
-        queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+      // Learn keyword — non-critical, must not break the main save flow
+      try {
+        const keyword = normaliseKeyword(values.itemName);
+        const staticMatch = suggestCategoryId(values.itemName);
+        if (!staticMatch && keyword) {
+          await db
+            .insert(learnedKeywords)
+            .values({ keyword, categoryId: values.categoryId, updatedAt: new Date().toISOString() })
+            .onConflictDoUpdate({
+              target: learnedKeywords.keyword,
+              set: { categoryId: values.categoryId, updatedAt: new Date().toISOString() },
+            });
+          queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+        }
+      } catch (e) {
+        console.warn("[outflow] keyword learn failed:", e);
       }
 
       return id;
@@ -63,6 +72,66 @@ export function useDeleteExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+    },
+  });
+}
+
+export function useAddKeyword() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ keyword, categoryId }: { keyword: string; categoryId: string }) => {
+      const k = normaliseKeyword(keyword);
+      if (!k) throw new Error("Keyword cannot be empty");
+      await db
+        .insert(learnedKeywords)
+        .values({ keyword: k, categoryId, updatedAt: new Date().toISOString() })
+        .onConflictDoUpdate({
+          target: learnedKeywords.keyword,
+          set: { categoryId, updatedAt: new Date().toISOString() },
+        });
+    },
+    onSuccess: (_, { categoryId }) => {
+      queryClient.invalidateQueries({ queryKey: ["keywords", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+    },
+  });
+}
+
+export function useDeleteKeyword() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ keyword, categoryId }: { keyword: string; categoryId: string }) => {
+      await db.delete(learnedKeywords).where(eq(learnedKeywords.keyword, keyword));
+    },
+    onSuccess: (_, { categoryId }) => {
+      queryClient.invalidateQueries({ queryKey: ["keywords", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+    },
+  });
+}
+
+export function useAddCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name, icon, existingCount }: { name: string; icon: string; existingCount: number }) => {
+      const id = newId();
+      const color = CATEGORY_GRAYS[existingCount % CATEGORY_GRAYS.length];
+      await db.insert(categories).values({
+        id,
+        name,
+        color,
+        icon,
+        sortOrder: existingCount,
+        isDefault: false,
+        createdAt: new Date().toISOString(),
+      });
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
   });
 }
