@@ -56,6 +56,7 @@ export default function ExpensesScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
+          stickySectionHeadersEnabled={false}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
           renderSectionHeader={({ section: { title } }) => (

@@ -61,7 +61,6 @@ export default function TabLayout() {
       <Tabs.Screen
         name="add-tab"
         options={{
-          href: null,
           tabBarButton: () => <CenterAddButton />,
         }}
       />
