@@ -1,5 +1,5 @@
-import { Tabs, router } from "expo-router";
-import { LayoutDashboard, List, Settings } from "lucide-react-native";
+import { Tabs } from "expo-router";
+import { LayoutDashboard, List, RefreshCw, Settings } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -30,6 +30,13 @@ export default function TabLayout() {
         options={{
           title: 'EXPENSES',
           tabBarIcon: ({ color }) => <List size={20} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="recurring"
+        options={{
+          title: 'RECURRING',
+          tabBarIcon: ({ color }) => <RefreshCw size={20} color={color} />,
         }}
       />
       <Tabs.Screen

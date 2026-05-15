@@ -15,6 +15,13 @@
       "when": 1778833006374,
       "tag": "0001_harsh_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778837659010,
+      "tag": "0002_zippy_tigra",
+      "breakpoints": true
     }
   ]
 }

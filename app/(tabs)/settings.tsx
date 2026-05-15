@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight, Plus } from "lucide-react-native";
@@ -9,29 +9,31 @@ import * as Icons from "lucide-react-native";
 
 type IconName = keyof typeof Icons;
 
-function CategoryRow({ id, name, color, icon }: { id: string; name: string; color: string; icon: string }) {
+function CategoryRow({ id, name, color, icon, isLast }: { id: string; name: string; color: string; icon: string; isLast: boolean }) {
   const IconComponent = (Icons[icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
   const gray = toGray(color);
 
   return (
     <Pressable
       onPress={() => router.push(`/category/${id}`)}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: T.border,
-        backgroundColor: pressed ? T.elevated : 'transparent',
-      })}
+      style={{ borderBottomWidth: isLast ? 0 : 1, borderBottomColor: T.border }}
     >
-      <View style={{ width: 30, height: 30, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-        <IconComponent size={14} color={gray} />
-      </View>
-      <Text style={{ color: T.text.primary, fontSize: 13, flex: 1 }}>{name}</Text>
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: gray, marginRight: 10 }} />
-      <ChevronRight size={14} color={T.text.muted} />
+      {({ pressed }) => (
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: 13,
+          paddingHorizontal: 14,
+          backgroundColor: pressed ? T.elevated : 'transparent',
+        }}>
+          <View style={{ width: 30, height: 30, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <IconComponent size={14} color={gray} />
+          </View>
+          <Text style={{ color: T.text.primary, fontSize: 13, flex: 1 }}>{name}</Text>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: gray, marginRight: 10 }} />
+          <ChevronRight size={14} color={T.text.muted} />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -50,34 +52,35 @@ export default function SettingsScreen() {
 
       <View style={{ height: 1, backgroundColor: T.border, marginHorizontal: 20, marginBottom: 20 }} />
 
-      <View style={{ paddingHorizontal: 20, flex: 1 }}>
-        {/* Section header row */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        {/* Section header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>
-            // CATEGORIES [{cats.length}]
+            {`// CATEGORIES [${cats.length}]`}
           </Text>
           <Pressable
             onPress={() => router.push('/category/new')}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 4, paddingHorizontal: 8, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
           >
-            <Plus size={12} color={T.text.secondary} />
+            <Plus size={11} color={T.text.secondary} />
             <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>NEW</Text>
           </Pressable>
         </View>
 
+        {/* Category list */}
         <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
-          <FlatList
-            data={cats}
-            keyExtractor={(c) => c.id}
-            scrollEnabled={false}
-            renderItem={({ item, index }) => (
-              <View style={{ borderTopWidth: index === 0 ? 0 : 0 }}>
-                <CategoryRow id={item.id} name={item.name} color={item.color} icon={item.icon} />
-              </View>
-            )}
-          />
+          {cats.map((item, index) => (
+            <CategoryRow
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              color={item.color}
+              icon={item.icon}
+              isLast={index === cats.length - 1}
+            />
+          ))}
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

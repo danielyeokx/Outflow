@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useDatabaseMigration, seedDefaultCategories } from "../lib/db";
+import { useDatabaseMigration, seedDefaultCategories, processRecurringExpenses } from "../lib/db";
 import { View, Text, ActivityIndicator } from "react-native";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -18,7 +18,10 @@ function MigrationGate({ children }: { children: React.ReactNode }) {
   const { success, error } = useDatabaseMigration();
 
   useEffect(() => {
-    if (success) seedDefaultCategories();
+    if (success) {
+      seedDefaultCategories();
+      processRecurringExpenses();
+    }
   }, [success]);
 
   if (error) {
@@ -60,6 +63,7 @@ export default function RootLayout() {
             <Stack.Screen name="add" options={{ presentation: "modal" }} />
             <Stack.Screen name="category/[id]" />
             <Stack.Screen name="category/new" options={{ presentation: "modal" }} />
+            <Stack.Screen name="recurring/new" options={{ presentation: "modal" }} />
           </Stack>
         </MigrationGate>
       </QueryClientProvider>

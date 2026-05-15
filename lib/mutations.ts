@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "./db";
-import { expenses, learnedKeywords, categories } from "./schema";
+import { expenses, learnedKeywords, categories, recurringExpenses } from "./schema";
+import { RecurringFormValues } from "./schema";
 import { eq } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
@@ -132,6 +133,49 @@ export function useAddCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useAddRecurring() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: RecurringFormValues) => {
+      const id = newId();
+      await db.insert(recurringExpenses).values({
+        id,
+        itemName: values.itemName,
+        amountCents: values.amountCents,
+        currency: "SGD",
+        categoryId: values.categoryId,
+        frequency: values.frequency,
+        dayOfMonth: values.dayOfMonth ?? null,
+        dayOfWeek: values.dayOfWeek ?? null,
+        intervalDays: values.intervalDays ?? null,
+        monthOfYear: values.monthOfYear ?? null,
+        startDate: values.startDate,
+        endDate: values.endDate ?? null,
+        lastLoggedDate: null,
+        note: values.note ?? null,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      });
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    },
+  });
+}
+
+export function useDeleteRecurring() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await db.delete(recurringExpenses).where(eq(recurringExpenses.id, id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
     },
   });
 }

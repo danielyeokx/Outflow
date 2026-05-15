@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "./db";
-import { expenses, categories, learnedKeywords } from "./schema";
+import { expenses, categories, learnedKeywords, recurringExpenses } from "./schema";
 import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 import { monthBounds } from "./format";
 
@@ -101,6 +101,41 @@ export function useKeywordsForCategory(categoryId: string) {
         .orderBy(learnedKeywords.keyword),
   });
 }
+
+export function useRecurring() {
+  return useQuery({
+    queryKey: ["recurring"],
+    queryFn: () =>
+      db
+        .select({
+          id: recurringExpenses.id,
+          itemName: recurringExpenses.itemName,
+          amountCents: recurringExpenses.amountCents,
+          currency: recurringExpenses.currency,
+          categoryId: recurringExpenses.categoryId,
+          frequency: recurringExpenses.frequency,
+          dayOfMonth: recurringExpenses.dayOfMonth,
+          dayOfWeek: recurringExpenses.dayOfWeek,
+          intervalDays: recurringExpenses.intervalDays,
+          monthOfYear: recurringExpenses.monthOfYear,
+          startDate: recurringExpenses.startDate,
+          endDate: recurringExpenses.endDate,
+          lastLoggedDate: recurringExpenses.lastLoggedDate,
+          note: recurringExpenses.note,
+          isActive: recurringExpenses.isActive,
+          createdAt: recurringExpenses.createdAt,
+          categoryName: categories.name,
+          categoryColor: categories.color,
+          categoryIcon: categories.icon,
+        })
+        .from(recurringExpenses)
+        .innerJoin(categories, eq(recurringExpenses.categoryId, categories.id))
+        .where(eq(recurringExpenses.isActive, true))
+        .orderBy(recurringExpenses.createdAt),
+  });
+}
+
+export type RecurringWithCategory = NonNullable<ReturnType<typeof useRecurring>["data"]>[number];
 
 export function useLearnedKeywords() {
   return useQuery({
