@@ -57,17 +57,18 @@ export const recurringExpenses = sqliteTable("recurring_expenses", {
 export type RecurringExpense = typeof recurringExpenses.$inferSelect;
 
 export const recurringFormSchema = z.object({
-  itemName:    z.string().min(1, "Item name is required").max(100),
-  amountCents: z.number().int().min(1, "Amount must be greater than 0"),
-  categoryId:  z.string().min(1, "Select a category"),
-  frequency:   z.enum(["monthly", "weekly", "yearly", "custom"]),
-  dayOfMonth:  z.number().int().min(1).max(31).optional(),
-  dayOfWeek:   z.number().int().min(0).max(6).optional(),
+  itemName:     z.string().min(1, "Item name is required").max(100),
+  amountCents:  z.number().int().min(1, "Amount must be greater than 0"),
+  categoryId:   z.string().min(1, "Select a category"),
+  frequency:    z.enum(["monthly", "weekly", "yearly", "custom"]),
+  dayOfMonth:   z.number().int().min(1).max(31).optional(),
+  dayOfWeek:    z.number().int().min(0).max(6).optional(),
   intervalDays: z.number().int().min(1).optional(),
-  monthOfYear: z.number().int().min(1).max(12).optional(),
-  startDate:   z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate:     z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  note:        z.string().max(200).optional(),
+  monthOfYear:  z.number().int().min(1).max(12).optional(),
+  note:         z.string().max(200).optional(),
+  // Expiry: null = forever, otherwise stop after end of this month/year
+  expiryMonth:  z.number().int().min(1).max(12).optional(),
+  expiryYear:   z.number().int().min(2024).max(2099).optional(),
 });
 
 export type RecurringFormValues = z.infer<typeof recurringFormSchema>;

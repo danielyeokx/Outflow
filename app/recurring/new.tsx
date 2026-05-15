@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { X } from "lucide-react-native";
+import { X, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { recurringFormSchema, RecurringFormValues } from "../../lib/schema";
@@ -14,7 +14,6 @@ import { useAddRecurring } from "../../lib/mutations";
 import CategoryPicker from "../../components/expense/CategoryPicker";
 import { T, input } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
-import { todayISO, parseCurrencyInput } from "../../lib/format";
 
 const FREQ_OPTIONS = [
   { value: "monthly", label: "MONTHLY" },
@@ -32,12 +31,17 @@ function formatDigits(digits: string): string {
   return `${String(parseInt(padded.slice(0, -2), 10))}.${padded.slice(-2)}`;
 }
 
-const labelStyle = { color: T.text.muted, fontSize: 10, letterSpacing: 2, fontFamily: 'SpaceMono-Regular' as const, marginBottom: 8 };
+const labelStyle = {
+  color: T.text.muted, fontSize: 10, letterSpacing: 2,
+  fontFamily: 'SpaceMono-Regular' as const, marginBottom: 8,
+};
 
 export default function NewRecurringScreen() {
   const { data: categories = [] } = useCategories();
   const { mutate: addRecurring, isPending } = useAddRecurring();
   const [amountDigits, setAmountDigits] = useState("");
+  const [hasExpiry, setHasExpiry] = useState(false);
+  const currentYear = new Date().getFullYear();
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<RecurringFormValues>({
     resolver: zodResolver(recurringFormSchema),
@@ -50,14 +54,18 @@ export default function NewRecurringScreen() {
       dayOfWeek: 1,
       intervalDays: 30,
       monthOfYear: 1,
-      startDate: todayISO(),
+      expiryMonth: new Date().getMonth() + 1,
+      expiryYear: currentYear + 1,
     },
   });
 
   const frequency = watch("frequency");
+  const expiryMonth = watch("expiryMonth") ?? new Date().getMonth() + 1;
+  const expiryYear = watch("expiryYear") ?? currentYear + 1;
 
   function onSubmit(values: RecurringFormValues) {
-    addRecurring(values, {
+    const payload = hasExpiry ? values : { ...values, expiryMonth: undefined, expiryYear: undefined };
+    addRecurring(payload, {
       onSuccess: () => router.back(),
       onError: () => Alert.alert("Error", "Could not save recurring expense."),
     });
@@ -148,8 +156,8 @@ export default function NewRecurringScreen() {
             </View>
           </View>
 
-          {/* Conditional day selectors */}
-          {frequency === "monthly" && (
+          {/* Day selectors */}
+          {(frequency === "monthly" || frequency === "yearly") && (
             <View>
               <Text style={labelStyle}>DAY OF MONTH (1-31)</Text>
               <Controller control={control} name="dayOfMonth" render={({ field: { onChange, value } }) => (
@@ -186,36 +194,21 @@ export default function NewRecurringScreen() {
           )}
 
           {frequency === "yearly" && (
-            <View style={{ gap: 14 }}>
-              <View>
-                <Text style={labelStyle}>MONTH</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                  {MONTHS.map((m, i) => {
-                    const active = watch("monthOfYear") === i + 1;
-                    return (
-                      <Pressable
-                        key={m}
-                        onPress={() => setValue("monthOfYear", i + 1)}
-                        style={{ paddingVertical: 8, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}
-                      >
-                        <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-              <View>
-                <Text style={labelStyle}>DAY OF MONTH (1-31)</Text>
-                <Controller control={control} name="dayOfMonth" render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={{ ...input, fontFamily: 'SpaceMono-Regular' }}
-                    placeholder="1"
-                    placeholderTextColor={T.text.muted}
-                    keyboardType="number-pad"
-                    value={value?.toString() ?? ""}
-                    onChangeText={(t) => onChange(Math.min(31, Math.max(1, parseInt(t) || 1)))}
-                  />
-                )} />
+            <View>
+              <Text style={labelStyle}>MONTH OF YEAR</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                {MONTHS.map((m, i) => {
+                  const active = watch("monthOfYear") === i + 1;
+                  return (
+                    <Pressable
+                      key={m}
+                      onPress={() => setValue("monthOfYear", i + 1)}
+                      style={{ paddingVertical: 8, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}
+                    >
+                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
           )}
@@ -236,34 +229,68 @@ export default function NewRecurringScreen() {
             </View>
           )}
 
-          {/* Start date */}
+          {/* Expiry */}
           <View>
-            <Text style={labelStyle}>START.DATE</Text>
-            <Controller control={control} name="startDate" render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={{ ...input, fontFamily: 'SpaceMono-Regular' }}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={T.text.muted}
-                value={value}
-                onChangeText={onChange}
-                keyboardType="numbers-and-punctuation"
-              />
-            )} />
-          </View>
+            <Text style={labelStyle}>EXPIRES</Text>
+            <View style={{ flexDirection: 'row', gap: 6, marginBottom: hasExpiry ? 14 : 0 }}>
+              {[false, true].map((val) => {
+                const active = hasExpiry === val;
+                return (
+                  <Pressable
+                    key={String(val)}
+                    onPress={() => setHasExpiry(val)}
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
+                  >
+                    <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>
+                      {val ? "UNTIL" : "FOREVER"}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-          {/* End date */}
-          <View>
-            <Text style={labelStyle}>END.DATE (OPTIONAL)</Text>
-            <Controller control={control} name="endDate" render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={{ ...input, fontFamily: 'SpaceMono-Regular' }}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={T.text.muted}
-                value={value ?? ""}
-                onChangeText={(t) => onChange(t || undefined)}
-                keyboardType="numbers-and-punctuation"
-              />
-            )} />
+            {hasExpiry && (
+              <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, gap: 14 }}>
+                {/* Month picker */}
+                <View>
+                  <Text style={{ ...labelStyle, marginBottom: 10 }}>MONTH</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                    {MONTHS.map((m, i) => {
+                      const active = expiryMonth === i + 1;
+                      return (
+                        <Pressable
+                          key={m}
+                          onPress={() => setValue("expiryMonth", i + 1)}
+                          style={{ paddingVertical: 7, paddingHorizontal: 9, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent' }}
+                        >
+                          <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Year stepper */}
+                <View>
+                  <Text style={{ ...labelStyle, marginBottom: 10 }}>YEAR</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Pressable
+                      onPress={() => setValue("expiryYear", Math.max(currentYear, expiryYear - 1))}
+                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <ChevronLeft size={16} color={T.text.secondary} />
+                    </Pressable>
+                    <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{expiryYear}</Text>
+                    <Pressable
+                      onPress={() => setValue("expiryYear", expiryYear + 1)}
+                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <ChevronRight size={16} color={T.text.secondary} />
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Submit */}

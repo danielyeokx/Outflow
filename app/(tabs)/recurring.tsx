@@ -81,6 +81,11 @@ export default function RecurringScreen() {
                         {`NEXT · ${nextDue}`}
                       </Text>
                     )}
+                    {item.endDate && (
+                      <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 1 }}>
+                        {`UNTIL · ${item.endDate.slice(0, 7)}`}
+                      </Text>
+                    )}
                   </View>
                   <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginRight: 12 }}>
                     {formatCurrency(item.amountCents)}

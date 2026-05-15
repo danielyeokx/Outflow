@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { db } from "./db";
 import { expenses, learnedKeywords, categories, recurringExpenses } from "./schema";
 import { RecurringFormValues } from "./schema";
+import { getDaysInMonth } from "date-fns";
 import { eq } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
@@ -142,6 +143,13 @@ export function useAddRecurring() {
   return useMutation({
     mutationFn: async (values: RecurringFormValues) => {
       const id = newId();
+      // Auto-set start to today; end to last day of expiry month/year if set
+      const startDate = new Date().toISOString().slice(0, 10);
+      let endDate: string | null = null;
+      if (values.expiryYear && values.expiryMonth) {
+        const lastDay = getDaysInMonth(new Date(values.expiryYear, values.expiryMonth - 1));
+        endDate = `${values.expiryYear}-${String(values.expiryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      }
       await db.insert(recurringExpenses).values({
         id,
         itemName: values.itemName,
@@ -153,8 +161,8 @@ export function useAddRecurring() {
         dayOfWeek: values.dayOfWeek ?? null,
         intervalDays: values.intervalDays ?? null,
         monthOfYear: values.monthOfYear ?? null,
-        startDate: values.startDate,
-        endDate: values.endDate ?? null,
+        startDate,
+        endDate,
         lastLoggedDate: null,
         note: values.note ?? null,
         isActive: true,
