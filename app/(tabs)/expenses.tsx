@@ -1,20 +1,15 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  SectionList,
-  Pressable,
-  Alert,
-} from "react-native";
+import { View, Text, SectionList, Pressable, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Plus, Trash2 } from "lucide-react-native";
-import { todayISO, addMonths, formatDate, formatCurrency } from "../../lib/format";
+import { Plus } from "lucide-react-native";
+import { todayISO, addMonths, formatDate } from "../../lib/format";
+import { T } from "../../lib/theme";
+import DotGrid from "../../components/DotGrid";
 import MonthHeader from "../../components/overview/MonthHeader";
 import { useExpenses } from "../../lib/queries";
 import { useDeleteExpense } from "../../lib/mutations";
 import ExpenseListItem from "../../components/expense/ExpenseListItem";
-import { format, parseISO } from "date-fns";
 
 export default function ExpensesScreen() {
   const [currentMonth, setCurrentMonth] = useState(todayISO());
@@ -22,41 +17,41 @@ export default function ExpensesScreen() {
   const { mutate: deleteExpense } = useDeleteExpense();
 
   const grouped = expenses.reduce<Record<string, typeof expenses>>((acc, e) => {
-    const day = e.spentAt;
-    if (!acc[day]) acc[day] = [];
-    acc[day].push(e);
+    if (!acc[e.spentAt]) acc[e.spentAt] = [];
+    acc[e.spentAt].push(e);
     return acc;
   }, {});
 
   const sections = Object.entries(grouped)
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, data]) => ({
-      title: formatDate(date),
-      data,
-    }));
+    .map(([date, data]) => ({ title: formatDate(date), data }));
 
   function confirmDelete(id: string, name: string) {
-    Alert.alert("Delete expense?", `Remove "${name}"?`, [
+    Alert.alert("Delete?", `Remove "${name}"?`, [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => deleteExpense(id),
-      },
+      { text: "Delete", style: "destructive", onPress: () => deleteExpense(id) },
     ]);
   }
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-background" style={{ flex: 1, backgroundColor: '#0F0F14' }}>
-      <View className="px-5 pt-6 pb-2 flex-row items-center justify-between">
-        <Text className="text-text-primary text-2xl font-bold">Expenses</Text>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>
+      <DotGrid />
+
+      {/* Header */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View>
+          <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>SYS.LOG</Text>
+          <Text style={{ color: T.text.primary, fontSize: 22, fontWeight: '700', letterSpacing: 1, marginTop: 2 }}>EXPENSES</Text>
+        </View>
         <Pressable
           onPress={() => router.push("/add")}
-          className="bg-primary w-10 h-10 rounded-full items-center justify-center"
+          style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.surface, alignItems: 'center', justifyContent: 'center' }}
         >
-          <Plus size={22} color="#FFF" />
+          <Plus size={18} color={T.text.primary} />
         </Pressable>
       </View>
+
+      <View style={{ height: 1, backgroundColor: T.border, marginHorizontal: 20, marginBottom: 4 }} />
 
       <MonthHeader
         monthISO={currentMonth}
@@ -65,21 +60,21 @@ export default function ExpensesScreen() {
       />
 
       {sections.length === 0 && !isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-text-muted text-base text-center">
-            No expenses this month.{"\n"}Tap + to add one.
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: T.text.muted, fontSize: 12, letterSpacing: 2, fontFamily: 'SpaceMono-Regular', textAlign: 'center' }}>
+            {'[ NO DATA ]\n\nTap + to log an expense.'}
           </Text>
         </View>
       ) : (
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          className="flex-1"
+          style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
           renderSectionHeader={({ section: { title } }) => (
-            <View className="py-2 mt-3">
-              <Text className="text-text-muted text-xs font-semibold uppercase tracking-widest">
-                {title}
+            <View style={{ paddingVertical: 8, marginTop: 12 }}>
+              <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>
+                {`// ${title.toUpperCase()}`}
               </Text>
             </View>
           )}

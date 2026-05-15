@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronDown, Check } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
 import { Category } from "../../lib/schema";
+import { T, toGray } from "../../lib/theme";
 
 type IconName = keyof typeof Icons;
 
@@ -21,70 +22,67 @@ export default function CategoryPicker({ categories, value, onChange, error }: P
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className={`flex-row items-center bg-card rounded-xl px-4 py-3.5 ${
-          error ? "border border-red-500" : "border border-transparent"
-        }`}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: T.elevated,
+          borderWidth: 1,
+          borderColor: error ? '#666666' : T.border,
+          borderRadius: T.radius,
+          paddingHorizontal: 14,
+          paddingVertical: 13,
+        }}
       >
         {selected ? (
           <>
-            <View
-              className="w-8 h-8 rounded-full items-center justify-center mr-3"
-              style={{ backgroundColor: selected.color + "30" }}
-            >
-              {(() => {
-                const IC = (Icons[selected.icon as IconName] ??
-                  Icons.MoreHorizontal) as React.ComponentType<{
-                  size: number;
-                  color: string;
-                }>;
-                return <IC size={16} color={selected.color} />;
-              })()}
-            </View>
-            <Text className="text-text-primary text-base flex-1">{selected.name}</Text>
+            {(() => {
+              const IC = (Icons[selected.icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
+              return <IC size={14} color={toGray(selected.color)} />;
+            })()}
+            <Text style={{ color: T.text.primary, fontSize: 14, flex: 1, marginLeft: 10 }}>{selected.name}</Text>
           </>
         ) : (
-          <Text className="text-text-muted text-base flex-1">Select category</Text>
+          <Text style={{ color: T.text.muted, fontSize: 14, flex: 1, fontFamily: 'SpaceMono-Regular' }}>-- SELECT --</Text>
         )}
-        <ChevronDown size={18} color="#6B6B8A" />
+        <ChevronDown size={14} color={T.text.muted} />
       </Pressable>
-      {error && <Text className="text-red-400 text-xs mt-1 ml-1">{error}</Text>}
+      {error && (
+        <Text style={{ color: '#888888', fontSize: 11, fontFamily: 'SpaceMono-Regular', marginTop: 4, marginLeft: 2 }}>{error}</Text>
+      )}
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <Pressable
-          className="flex-1 bg-black/50"
-          onPress={() => setOpen(false)}
-        >
-          <View className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-2xl pb-10">
-            <View className="w-10 h-1 bg-border rounded-full self-center mt-3 mb-4" />
-            <Text className="text-text-primary text-lg font-bold px-5 mb-3">
-              Choose Category
+        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)' }} onPress={() => setOpen(false)}>
+          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: T.surface, borderTopWidth: 1, borderTopColor: T.border, paddingBottom: 40 }}>
+            {/* Handle */}
+            <View style={{ width: 32, height: 1, backgroundColor: T.border, alignSelf: 'center', marginTop: 14, marginBottom: 16 }} />
+            <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', paddingHorizontal: 20, marginBottom: 12 }}>
+              // SELECT.CATEGORY
             </Text>
             <FlatList
               data={categories}
               keyExtractor={(c) => c.id}
-              renderItem={({ item }) => {
-                const IC = (Icons[item.icon as IconName] ??
-                  Icons.MoreHorizontal) as React.ComponentType<{
-                  size: number;
-                  color: string;
-                }>;
+              renderItem={({ item, index }) => {
+                const IC = (Icons[item.icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
+                const gray = toGray(item.color);
                 const isSelected = value === item.id;
                 return (
                   <Pressable
-                    onPress={() => {
-                      onChange(item.id);
-                      setOpen(false);
+                    onPress={() => { onChange(item.id); setOpen(false); }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 20,
+                      paddingVertical: 14,
+                      borderTopWidth: index === 0 ? 0 : 1,
+                      borderTopColor: T.border,
+                      backgroundColor: isSelected ? T.elevated : 'transparent',
                     }}
-                    className="flex-row items-center px-5 py-3.5 active:opacity-70"
                   >
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: item.color + "30" }}
-                    >
-                      <IC size={18} color={item.color} />
+                    <View style={{ width: 28, height: 28, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.bg, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                      <IC size={14} color={gray} />
                     </View>
-                    <Text className="text-text-primary text-base flex-1">{item.name}</Text>
-                    {isSelected && <Check size={18} color="#7C6FFF" />}
+                    <Text style={{ color: T.text.primary, fontSize: 14, flex: 1 }}>{item.name}</Text>
+                    {isSelected && <Check size={14} color={T.text.secondary} />}
                   </Pressable>
                 );
               }}

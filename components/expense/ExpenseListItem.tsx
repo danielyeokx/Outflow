@@ -2,6 +2,7 @@ import { View, Text, Pressable } from "react-native";
 import { Trash2 } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
 import { formatCurrency } from "../../lib/format";
+import { T, toGray } from "../../lib/theme";
 import { ExpenseWithCategory } from "../../lib/queries";
 
 type IconName = keyof typeof Icons;
@@ -12,29 +13,35 @@ interface Props {
 }
 
 export default function ExpenseListItem({ expense, onDelete }: Props) {
-  const IconComponent = (
-    Icons[(expense.categoryIcon as IconName)] ?? Icons.MoreHorizontal
-  ) as React.ComponentType<{ size: number; color: string }>;
+  const IconComponent = (Icons[(expense.categoryIcon as IconName)] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
+  const gray = toGray(expense.categoryColor);
 
   return (
-    <View className="flex-row items-center bg-card rounded-xl px-3 py-3 mb-2">
-      <View
-        className="w-10 h-10 rounded-full items-center justify-center mr-3"
-        style={{ backgroundColor: expense.categoryColor + "30" }}
-      >
-        <IconComponent size={18} color={expense.categoryColor} />
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: T.surface,
+      borderWidth: 1,
+      borderColor: T.border,
+      borderRadius: T.radius,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      marginBottom: 6,
+    }}>
+      <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+        <IconComponent size={15} color={gray} />
       </View>
-      <View className="flex-1">
-        <Text className="text-text-primary text-sm font-medium" numberOfLines={1}>
-          {expense.itemName}
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: T.text.primary, fontSize: 13 }} numberOfLines={1}>{expense.itemName}</Text>
+        <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
+          {expense.categoryName.toUpperCase()}
         </Text>
-        <Text className="text-text-muted text-xs">{expense.categoryName}</Text>
       </View>
-      <Text className="text-text-primary text-sm font-semibold mr-3">
+      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginRight: 12 }}>
         {formatCurrency(expense.amountCents)}
       </Text>
       <Pressable onPress={onDelete} hitSlop={8}>
-        <Trash2 size={16} color="#6B6B8A" />
+        <Trash2 size={14} color={T.text.muted} />
       </Pressable>
     </View>
   );

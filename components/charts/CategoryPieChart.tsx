@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { formatCurrency } from "../../lib/format";
+import { T, toGray } from "../../lib/theme";
 
 interface Row {
   categoryId: string;
@@ -17,39 +18,37 @@ interface Props {
 export default function CategoryPieChart({ data, total }: Props) {
   const pieData = data.map((row) => ({
     value: row.total,
-    color: row.categoryColor,
-    label: row.categoryName,
+    color: toGray(row.categoryColor),
   }));
 
   return (
-    <View className="bg-card rounded-2xl items-center py-5">
-      <Text className="text-text-secondary text-sm font-semibold mb-4">
-        Spending Breakdown
+    <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, paddingVertical: 20, alignItems: 'center' }}>
+      <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 16 }}>
+        // SPENDING.BREAKDOWN
       </Text>
       <PieChart
         data={pieData}
         donut
-        radius={100}
-        innerRadius={62}
-        innerCircleColor="#22222F"
+        radius={90}
+        innerRadius={56}
+        innerCircleColor={T.surface}
         centerLabelComponent={() => (
-          <View className="items-center">
-            <Text className="text-text-muted text-xs">Total</Text>
-            <Text className="text-text-primary text-base font-bold">
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>TOTAL</Text>
+            <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
               {formatCurrency(total)}
             </Text>
           </View>
         )}
       />
       {/* Legend */}
-      <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-2 mt-4 px-4">
-        {data.slice(0, 6).map((row) => (
-          <View key={row.categoryId} className="flex-row items-center gap-1">
-            <View
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: row.categoryColor }}
-            />
-            <Text className="text-text-muted text-xs">{row.categoryName}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, paddingHorizontal: 16, gap: 8 }}>
+        {data.map((row) => (
+          <View key={row.categoryId} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <View style={{ width: 6, height: 6, backgroundColor: toGray(row.categoryColor) }} />
+            <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>
+              {row.categoryName.toUpperCase()}
+            </Text>
           </View>
         ))}
       </View>

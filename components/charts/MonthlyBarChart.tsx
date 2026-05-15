@@ -1,6 +1,7 @@
 import { View, Text, ScrollView } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { format, parseISO } from "date-fns";
+import { T } from "../../lib/theme";
 
 interface DayTotal {
   day: string;
@@ -19,35 +20,34 @@ export default function MonthlyBarChart({ data }: Props) {
   const barData = data.map((d) => ({
     value: d.total / 100,
     label: format(parseISO(d.day), "d"),
-    frontColor: "#7C6FFF",
+    frontColor: '#FFFFFF',
+    labelTextStyle: { color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' },
   }));
 
   return (
-    // overflow visible so x-axis labels aren't clipped by borderRadius
-    <View style={{ overflow: 'visible' }}>
-      <View style={{ backgroundColor: '#22222F', borderRadius: 16, paddingTop: 20, paddingBottom: 16, overflow: 'visible' }}>
-        <Text style={{ color: '#A0A0C0', fontSize: 13, fontWeight: '600', paddingHorizontal: 16, marginBottom: 12 }}>
-          Daily Spending
-        </Text>
+    <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, paddingTop: 16, paddingBottom: 0 }}>
+      <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', paddingHorizontal: 14, marginBottom: 12 }}>
+        // DAILY.SPEND
+      </Text>
+      <View style={{ paddingBottom: 56 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <BarChart
             data={barData}
             height={CHART_HEIGHT}
-            barWidth={18}
+            barWidth={14}
             spacing={8}
-            roundedTop
             hideRules
-            xAxisColor="#2E2E3E"
+            xAxisColor={T.border}
             yAxisColor="transparent"
-            yAxisTextStyle={{ color: "#6B6B8A", fontSize: 10 }}
-            xAxisLabelTextStyle={{ color: "#6B6B8A", fontSize: 10 }}
+            yAxisTextStyle={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}
+            xAxisLabelTextStyle={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}
             noOfSections={4}
             maxValue={Math.ceil(maxVal / 100)}
             isAnimated
-            animationDuration={600}
-            barBorderRadius={4}
-            backgroundColor="#22222F"
-            width={Math.max(data.length * 26 + 40, 300)}
+            animationDuration={500}
+            barBorderRadius={0}
+            backgroundColor={T.surface}
+            width={Math.max(data.length * 22 + 40, 300)}
             xAxisThickness={1}
             yAxisThickness={0}
           />

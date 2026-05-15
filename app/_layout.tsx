@@ -23,16 +23,16 @@ function MigrationGate({ children }: { children: React.ReactNode }) {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <Text className="text-red-400 text-base">DB error: {error.message}</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0A' }}>
+        <Text style={{ color: '#888888', fontSize: 11, fontFamily: 'SpaceMono-Regular' }}>DB ERR: {error.message}</Text>
       </View>
     );
   }
 
   if (!success) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color="#7C6FFF" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0A' }}>
+        <ActivityIndicator color="#888888" />
       </View>
     );
   }

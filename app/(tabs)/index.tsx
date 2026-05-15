@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { todayISO, addMonths, formatCurrency } from "../../lib/format";
+import { T } from "../../lib/theme";
+import DotGrid from "../../components/DotGrid";
 import MonthHeader from "../../components/overview/MonthHeader";
 import CategoryBreakdown from "../../components/overview/CategoryBreakdown";
 import CategoryPieChart from "../../components/charts/CategoryPieChart";
@@ -52,19 +54,30 @@ export default function OverviewScreen() {
       .map(([day, total]) => ({ day, total }));
   }, [expenses]);
 
+  // Format total as sci-fi readout: > SGD 11.50
+  const totalReadout = `> SGD ${(grandTotal / 100).toFixed(2)}`;
+
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#0F0F14' }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>
+      <DotGrid />
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+
         {/* Header */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 24, fontWeight: 'bold' }}>Outflow</Text>
+        <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View>
+            <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>SYS.OUTFLOW</Text>
+            <Text style={{ color: T.text.primary, fontSize: 22, fontWeight: '700', letterSpacing: 1, marginTop: 2 }}>OUTFLOW</Text>
+          </View>
           <Pressable
             onPress={() => router.push("/add")}
-            style={{ backgroundColor: '#7C6FFF', width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.surface, alignItems: 'center', justifyContent: 'center' }}
           >
-            <Plus size={22} color="#FFF" />
+            <Plus size={18} color={T.text.primary} />
           </Pressable>
         </View>
+
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: T.border, marginHorizontal: 20, marginBottom: 4 }} />
 
         {/* Month Switcher */}
         <MonthHeader
@@ -73,44 +86,40 @@ export default function OverviewScreen() {
           onNext={() => setCurrentMonth((m) => addMonths(m, 1))}
         />
 
-        {/* Total */}
-        <View style={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-          <Text style={{ color: '#6B6B8A', fontSize: 12, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4 }}>
-            Total Spent
-          </Text>
-          <Text style={{ color: '#FFFFFF', fontSize: 36, fontWeight: 'bold' }}>
-            {formatCurrency(grandTotal)}
+        {/* Total readout */}
+        <View style={{ marginHorizontal: 20, marginTop: 8, marginBottom: 20, padding: 16, backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
+          <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 6 }}>TOTAL.SPENT</Text>
+          <Text style={{ color: T.text.primary, fontSize: 32, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>
+            {totalReadout}
           </Text>
         </View>
 
         {/* Pie Chart */}
         {categoryRows.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
             <CategoryPieChart data={categoryRows} total={grandTotal} />
           </View>
         )}
 
         {/* Bar Chart */}
         {dailyTotals.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+          <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
             <MonthlyBarChart data={dailyTotals} />
           </View>
         )}
 
         {/* Category Breakdown */}
         {categoryRows.length > 0 && (
-          <View style={{ paddingHorizontal: 20, marginBottom: 32 }}>
-            <Text style={{ color: '#A0A0C0', fontSize: 13, fontWeight: '600', marginBottom: 12 }}>
-              By Category
-            </Text>
+          <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
+            <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 10 }}>// CATEGORY.BREAKDOWN</Text>
             <CategoryBreakdown rows={categoryRows} total={grandTotal} />
           </View>
         )}
 
         {expenses.length === 0 && (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 80 }}>
-            <Text style={{ color: '#6B6B8A', fontSize: 16, textAlign: 'center' }}>
-              No expenses this month.{"\n"}Tap + to add one.
+          <View style={{ alignItems: 'center', paddingTop: 60 }}>
+            <Text style={{ color: T.text.muted, fontSize: 12, letterSpacing: 2, fontFamily: 'SpaceMono-Regular', textAlign: 'center' }}>
+              {'[ NO DATA ]\n\nTap + to log an expense.'}
             </Text>
           </View>
         )}

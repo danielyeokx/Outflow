@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { formatCurrency } from "../../lib/format";
+import { T, toGray } from "../../lib/theme";
 
 interface Row {
   categoryId: string;
@@ -16,38 +17,35 @@ interface Props {
 
 export default function CategoryBreakdown({ rows, total }: Props) {
   return (
-    <View className="bg-card rounded-2xl overflow-hidden">
+    <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
       {rows.map((row, index) => {
         const pct = total > 0 ? Math.round((row.total / total) * 100) : 0;
+        const gray = toGray(row.categoryColor);
         return (
           <View
             key={row.categoryId}
-            className={`px-4 py-3 ${index < rows.length - 1 ? "border-b border-border" : ""}`}
+            style={{
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+              borderBottomWidth: index < rows.length - 1 ? 1 : 0,
+              borderBottomColor: T.border,
+            }}
           >
-            <View className="flex-row items-center justify-between mb-1">
-              <View className="flex-row items-center gap-2">
-                <View
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: row.categoryColor }}
-                />
-                <Text className="text-text-primary text-sm">{row.categoryName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 6, height: 6, backgroundColor: gray }} />
+                <Text style={{ color: T.text.primary, fontSize: 13 }}>{row.categoryName}</Text>
               </View>
-              <View className="flex-row items-center gap-2">
-                <Text className="text-text-muted text-xs">{pct}%</Text>
-                <Text className="text-text-primary text-sm font-semibold">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>{pct}%</Text>
+                <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular' }}>
                   {formatCurrency(row.total)}
                 </Text>
               </View>
             </View>
             {/* Progress bar */}
-            <View className="h-1 bg-border rounded-full overflow-hidden">
-              <View
-                className="h-full rounded-full"
-                style={{
-                  backgroundColor: row.categoryColor,
-                  width: `${pct}%`,
-                }}
-              />
+            <View style={{ height: 1, backgroundColor: T.border }}>
+              <View style={{ height: 1, backgroundColor: gray, width: `${pct}%` }} />
             </View>
           </View>
         );

@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { formatMonthLabel } from "../../lib/format";
+import { T } from "../../lib/theme";
 
 interface Props {
   monthISO: string;
@@ -10,21 +11,21 @@ interface Props {
 
 export default function MonthHeader({ monthISO, onPrev, onNext }: Props) {
   return (
-    <View className="flex-row items-center justify-between px-5 py-3">
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}>
       <Pressable
         onPress={onPrev}
-        className="w-9 h-9 items-center justify-center rounded-full bg-card"
+        style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.surface, alignItems: 'center', justifyContent: 'center' }}
       >
-        <ChevronLeft size={20} color="#A0A0C0" />
+        <ChevronLeft size={16} color={T.text.secondary} />
       </Pressable>
-      <Text className="text-text-primary text-base font-semibold">
-        {formatMonthLabel(monthISO)}
+      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', letterSpacing: 2 }}>
+        {`[ ${formatMonthLabel(monthISO).toUpperCase()} ]`}
       </Text>
       <Pressable
         onPress={onNext}
-        className="w-9 h-9 items-center justify-center rounded-full bg-card"
+        style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.surface, alignItems: 'center', justifyContent: 'center' }}
       >
-        <ChevronRight size={20} color="#A0A0C0" />
+        <ChevronRight size={16} color={T.text.secondary} />
       </Pressable>
     </View>
   );

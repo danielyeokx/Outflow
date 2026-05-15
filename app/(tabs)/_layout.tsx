@@ -1,6 +1,5 @@
 import { Tabs, router } from "expo-router";
-import { Pressable } from "react-native";
-import { LayoutDashboard, List, Settings, Plus } from "lucide-react-native";
+import { LayoutDashboard, List, Settings } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -8,35 +7,36 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#1A1A24",
-          borderTopColor: "#2E2E3E",
+          backgroundColor: '#0A0A0A',
+          borderTopColor: '#2A2A2A',
+          borderTopWidth: 1,
           paddingBottom: 8,
           height: 64,
         },
-        tabBarActiveTintColor: "#7C6FFF",
-        tabBarInactiveTintColor: "#6B6B8A",
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#444444',
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 1 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Overview",
-          tabBarIcon: ({ color }) => <LayoutDashboard size={22} color={color} />,
+          title: 'OVERVIEW',
+          tabBarIcon: ({ color }) => <LayoutDashboard size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="expenses"
         options={{
-          title: "Expenses",
-          tabBarIcon: ({ color }) => <List size={22} color={color} />,
+          title: 'EXPENSES',
+          tabBarIcon: ({ color }) => <List size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings size={22} color={color} />,
+          title: 'SETTINGS',
+          tabBarIcon: ({ color }) => <Settings size={20} color={color} />,
         }}
       />
     </Tabs>
