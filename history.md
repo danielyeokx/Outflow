@@ -4,6 +4,12 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-17 (session 7)
+
+[INFRA] Release build crashed on device — `Cannot find native module 'ExpoSharing'`; root cause: `expo-sharing` was in package.json but `pod install` had never been run after it was added; fix: `cd ios && pod install`
+[INFRA] Post-pod-install build failed with `Undefined symbol: facebook::react::Sealable` + `DebugStringConvertible` + Hermes inspector linker errors; root cause: stale Derived Data conflicting with newly installed pods; fix: delete `~/Library/Developer/Xcode/DerivedData/Outflow-*` + clean build folder (`⇧⌘K`) + `pod deintegrate && pod install` + rebuild
+[INFRA] New phone setup process documented: enable Developer Mode (Settings → Privacy & Security → Developer Mode), connect via USB, trust computer, let Xcode complete "Copying shared cache symbols" before building, then trust cert in Settings → General → VPN & Device Management
+
 ## 2026-05-16 (session 6)
 
 [FEATURE] Settings — Clear All Keywords: deletes `learned_keywords` table + sets `staticKeywordsEnabled: false` in settings.json; stops auto-suggest and hides static keywords in category detail; keyword learning on new expense entry continues unaffected

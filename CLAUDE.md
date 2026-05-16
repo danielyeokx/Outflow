@@ -133,6 +133,12 @@ drizzle/
 - **Expo Go web target**: broken — expo-sqlite uses WASM on web which Metro can't bundle. Web is not a target platform.
 - **Sheet swipe-to-dismiss with scroll content**: PanResponder drag handle works for all sheets but full swipe-anywhere-to-dismiss is not implemented. Consider @gorhom/bottom-sheet for a proper solution (tracked in task.md).
 
+## Build troubleshooting
+- **`Cannot find native module 'ExpoSharing'` on device**: `pod install` was never run after expo-sharing was added. Fix: `cd ios && pod install`, then clean + rebuild in Xcode.
+- **`Undefined symbol: facebook::react::Sealable` / `DebugStringConvertible` linker errors**: stale Derived Data conflicting with newly installed pods. Fix: delete `~/Library/Developer/Xcode/DerivedData/Outflow-*` (via Xcode → Settings → Locations → arrow next to Derived Data), then `pod deintegrate && pod install` in `ios/`, then `⇧⌘K` clean build + rebuild.
+- **Debug build: "No script URL" / connection refused**: Debug loads JS from Metro dev server. Either run `npx expo start` first, or switch to Release (Edit Scheme → Run → Build Configuration → Release).
+- **New phone setup**: Developer Mode (Settings → Privacy & Security → Developer Mode → restart) → connect USB → trust computer → wait for Xcode "Copying shared cache symbols" to finish → build → trust cert (Settings → General → VPN & Device Management).
+
 ## Dev workflow
 ```bash
 # Start dev server + simulator
