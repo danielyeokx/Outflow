@@ -4,7 +4,12 @@
 
 ## 2026-05-16 (session 4)
 
-- [x] **Recurring expense edit** — tap row opens edit sheet (transparentModal); pre-populated form; UPDATE + delete; item name→category auto-suggest; day-of-month local string state fix
+- [x] **Recurring expense edit** — tap row opens edit sheet (transparentModal); pre-populated form; UPDATE + delete; item name→category auto-suggest; day-of-month local string state fix; currency chip
+- [x] **Settings: Export CSV** — expo-file-system/legacy + expo-sharing; columns: date/item/category/amount/currency/note
+- [x] **Settings: Clear All Data** — deletes expenses + recurring + learned_keywords; double-Alert; keeps categories
+- [x] **Settings: Default Currency** — 12 currencies; persisted to settings.json; all app totals/displays update on change
+- [x] **Multi-currency input** — currency chip (square) on amount field in add + edit forms; dropdown picker; stored per-expense
+- [x] **Multi-currency display** — expense list shows own currency + conversion subtitle (~SGD) when differs from default; charts convert all amounts to default currency via hardcoded rates (lib/rates.ts)
 
 ## 2026-05-16 (session 3)
 

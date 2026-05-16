@@ -20,6 +20,8 @@ Personal expense tracker for iOS. Single-user, local SQLite storage, grayscale s
 | react-native-gifted-charts | ^1.4.76 | Pie + bar charts (SVG, no Skia) |
 | lucide-react-native | ^1.16.0 | Icons |
 | date-fns | ^4.1.0 | Date utilities |
+| expo-file-system | ~18.0.7 | CSV export + settings.json persistence — import from `expo-file-system/legacy` |
+| expo-sharing | ~13.0.1 | iOS share sheet for CSV export |
 
 ## File structure
 ```
@@ -36,6 +38,7 @@ app/
     new.tsx         # New category modal (Sheet)
   recurring/
     new.tsx         # New recurring modal (Sheet) — legacy, use /add instead
+    [id].tsx        # Edit recurring modal (Sheet) — pre-populated form, UPDATE + delete
   _layout.tsx       # Root layout: QueryClient, DB migration, recurring engine
   add.tsx           # Unified add modal (single + recurring toggle)
   +not-found.tsx
@@ -58,12 +61,14 @@ components/
 lib/
   categorize.ts     # Static keyword map + learned keyword lookup
   db.ts             # Drizzle client, migrations runner, recurring engine
-  format.ts         # Currency (SGD), date formatters
-  mutations.ts      # All TanStack Mutations (add/delete/rename expense, category, keyword, recurring)
+  format.ts         # Currency formatters, date formatters
+  mutations.ts      # All TanStack Mutations + exportExpensesCSV (standalone async)
   queries.ts        # All TanStack Queries
+  rates.ts          # Hardcoded exchange rates (SGD base) + convertCurrency() + CURRENCIES list
   recurring.ts      # Due date computation engine (monthly/weekly/yearly/custom)
-  schema.ts         # Drizzle table defs + Zod schemas
+  schema.ts         # Drizzle table defs + Zod schemas (expenseFormSchema + recurringFormSchema both have optional currency field)
   seeds.ts          # Default 8 categories
+  settings.ts       # Read/write settings.json via expo-file-system/legacy (defaultCurrency)
   theme.ts          # Design tokens + toGray() helper
 
 drizzle/
@@ -113,6 +118,10 @@ drizzle/
 - **Button backgrounds**: use `T.elevated` (#181818) as resting state for standalone buttons so they contrast against `T.bg` (#0A0A0A). `T.surface` (#111111) is too close to screen bg and looks like plain text
 - **Square action buttons**: set `width: 44` on the button and `height: 44` on the sibling TextInput — flex row stretch makes the button match input height, giving a natural square
 - **In-app confirmation modals**: use RN `Modal` with `transparent` + `animationType="fade"`, `rgba(0,0,0,0.85)` overlay, centered floating panel (`T.surface` bg + `T.border` border). Outer Pressable dismisses on backdrop tap; inner Pressable swallows touches
+- **Currency chip on amount inputs**: `flexDirection: 'row', alignItems: 'stretch', gap: 8` parent; TextInput has `flex: 1`; currency button has `aspectRatio: 1` — height stretches to match input, width = height automatically
+- **Multi-currency**: amounts stored in cents with currency code per-expense. `convertCurrency(cents, from, to)` in `lib/rates.ts` for chart aggregation. `formatCurrency(cents, currency)` for display — always pass the stored currency, never assume SGD
+- **Settings persistence**: `lib/settings.ts` reads/writes `{documentDirectory}/settings.json` via `expo-file-system/legacy`. Use `useDefaultCurrency()` query + `useSetDefaultCurrency()` mutation; invalidates `["settings"]`, `["monthly-summary"]`, `["daily-totals"]`
+- **expo-file-system**: must import from `expo-file-system/legacy` in SDK 54 — the top-level import throws deprecation errors at runtime
 
 ## Known issues
 - **NativeWind className on RN components**: not all className styles apply reliably — use inline `style` prop as source of truth, className as enhancement only.

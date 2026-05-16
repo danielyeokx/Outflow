@@ -4,6 +4,25 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-16 (session 4)
+
+[FEATURE] Recurring expense edit — tap row navigates to `app/recurring/[id].tsx` (transparentModal Sheet); form pre-populated from stored data; UPDATE + delete (Alert confirm); currency chip on amount field
+[FEATURE] Settings: Export CSV — `expo-file-system/legacy` + `expo-sharing`; all expenses with date/item/category/amount/currency/note columns
+[FEATURE] Settings: Clear All Data — deletes expenses + recurring + learned_keywords; double-Alert confirmation; keeps categories
+[FEATURE] Settings: Default Currency preference — persisted to `settings.json` via `lib/settings.ts` (expo-file-system); 12 currencies supported
+[FEATURE] Multi-currency on add/edit forms — currency chip (square aspect-ratio button) next to amount input; dropdown picker; initialises from default currency setting
+[FEATURE] Per-expense currency stored and displayed — `formatCurrency(amountCents, currency)` everywhere; conversion subtitle on expense list items when currency ≠ default (`~SGD xx.xx`)
+[FEATURE] `lib/rates.ts` — hardcoded approximate exchange rates (SGD base); `convertCurrency(amount, from, to)` + shared `CURRENCIES` list
+[FEATURE] Chart queries converted to JS-side aggregation with currency conversion — `useMonthlySummary` + `useDailyTotals` now fetch per-row and convert to default currency before summing
+[FEATURE] Overview wired to `useMonthlySummary` + `useDailyTotals` + `useDefaultCurrency` — total, pie chart, bar chart, category breakdown all reflect default currency
+[FIX] Changing default currency invalidates `monthly-summary` + `daily-totals` query cache so charts update immediately
+[FIX] Recurring edit: item name clear → category auto-reset (autoPickedRef initialised true on load)
+[FIX] Day-of-month input: local string state (`dayText`) prevents Math.max(1,n) clamp blocking re-entry — applied to both add.tsx and recurring/[id].tsx
+[FIX] Export CSV: `expo-file-system/legacy` import required for SDK 54; `isAvailableAsync()` check before shareAsync; encoding `'utf8'` string literal (EncodingType enum undefined)
+[FIX] Recurring list rows: `Pressable` children render-prop pattern + `ChevronRight` affordance for tap-to-edit discoverability
+[UI] `useUpdateRecurring` mutation now writes currency field
+[UI] `CategoryPieChart` + `CategoryBreakdown` accept `currency` prop — all amount displays use correct currency symbol
+
 ## 2026-05-16 (session 3)
 
 [FEATURE] `useRenameCategory` mutation — updates `categories.name`, invalidates `["categories"]`
