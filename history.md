@@ -4,6 +4,18 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-17 (session 8)
+
+[BUG] Category picker height mismatch — selected chip shorter than placeholder; fixed with `minHeight: 44` on Pressable
+[BUG] Daily spend bar chart x-axis line bled into right card padding — root cause: gifted-charts renders x-axis as a View that fills its container regardless of `width` prop; final fix: `xAxisThickness={0}` (no library line) + `disableScroll` (suppresses gifted-charts internal ScrollView)
+[BUG] Spending breakdown card (CategoryPieChart) title center-aligned — `alignItems: 'center'` on outer card was centering `// SPENDING.BREAKDOWN`; moved to inner wrapper around pie + legend only
+[BUG] Bar chart not updating after expense edits — gifted-charts `BarChart` silently ignores `data` prop changes after initial mount; fixed with `key={barData.map(d => d.value).join('|')}` to force re-mount on data change
+[BUG] Daily totals not refetching immediately after mutations — `invalidateQueries` only marks stale; changed to `refetchQueries(["daily-totals"])` in all expense mutations (`useAddExpense`, `useUpdateExpense`, `useDeleteExpense`, `useClearAllData`, `useSetDefaultCurrency`)
+[UI] Padding consistency pass — standardised `paddingHorizontal: 14` across all card rows, list items, and inline dropdowns: `ExpenseListItem` (was 12), settings/add/edit/recurring currency dropdown rows (was 10–12), settings `+ NEW` button (was 16), CategoryPieChart legend (was 16)
+[UI] MonthlyBarChart card padding — removed inner `paddingBottom: 56`; card now uses `paddingBottom: 16` consistently
+[FIX] Daily spend chart window — changed from 14-day to 10-day trailing window at user request; uses UTC noon arithmetic (`T12:00:00Z`) for date iteration to avoid timezone/DST off-by-one
+[FIX] MonthlyBarChart — removed horizontal ScrollView; `onLayout` measures exact content width; `barWidth` distributed dynamically so all 10 bars fill the card with no overflow; `initialSpacing={0}` so gifted-charts bar layout is predictable
+
 ## 2026-05-17 (session 7)
 
 [INFRA] Release build crashed on device — `Cannot find native module 'ExpoSharing'`; root cause: `expo-sharing` was in package.json but `pod install` had never been run after it was added; fix: `cd ios && pod install`

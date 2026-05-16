@@ -26,7 +26,7 @@ export default function OverviewScreen() {
 
   const categoryRows = summary?.rows ?? [];
   const grandTotal = summary?.grandTotal ?? 0;
-  const isEmpty = grandTotal === 0 && dailyTotals.length === 0;
+  const isEmpty = grandTotal === 0 && categoryRows.length === 0;
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>

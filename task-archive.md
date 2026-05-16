@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-05-17 (session 8)
+
+- [x] **Category picker height mismatch** — `minHeight: 44` on Pressable equalises selected chip and placeholder height
+- [x] **Daily spend bar chart x-axis bleeding** — `xAxisThickness={0}` removes library line that couldn't be constrained; `disableScroll` kills internal gifted-charts ScrollView
+- [x] **Spending breakdown card center-aligned text** — moved `alignItems: 'center'` off outer card; title is now left-aligned with `paddingHorizontal: 14`
+- [x] **Bar chart not updating after expense edits** — added `key` prop tied to bar values; forces gifted-charts re-mount on data change (library ignores data prop updates silently)
+- [x] **Daily totals not refreshing immediately** — changed `invalidateQueries` → `refetchQueries` for `["daily-totals"]` in all expense mutations
+- [x] **Padding consistency across all cards/rows/dropdowns** — standardised `paddingHorizontal: 14` everywhere (ExpenseListItem, currency pickers, settings buttons)
+- [x] **Daily spend chart — 10-day window** — user confirmed 10 days (not 14); UTC noon arithmetic for correct timezone handling; `onLayout` dynamic bar width; no scroll
+
 ## 2026-05-16 (session 6)
 
 - [x] **Settings: Clear All Keywords** — clears DB + disables static map via flag; category detail hides static keywords; auto-suggest off
