@@ -226,7 +226,7 @@ export default function EditRecurringScreen() {
                 return (
                   <Pressable key={c.code} onPress={() => { setCurrencyState(c.code); setCurrencyPickerOpen(false); }}>
                     {({ pressed }) => (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 12, backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 14, backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent' }}>
                         <Text style={{ color: T.text.primary, fontSize: 12, fontFamily: 'SpaceMono-Regular', width: 44 }}>{c.code}</Text>
                         <Text style={{ color: T.text.muted, fontSize: 11, fontFamily: 'SpaceMono-Regular', flex: 1 }}>{c.label}</Text>
                         {active && <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: T.text.secondary }} />}

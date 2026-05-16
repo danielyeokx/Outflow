@@ -31,6 +31,7 @@ export default function CategoryPicker({ categories, value, onChange, error }: P
           borderRadius: T.radius,
           paddingHorizontal: 14,
           paddingVertical: 13,
+          minHeight: 44,
         }}
       >
         {selected ? (

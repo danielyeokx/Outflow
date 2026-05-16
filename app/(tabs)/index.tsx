@@ -56,7 +56,7 @@ export default function OverviewScreen() {
           </View>
         )}
 
-        {dailyTotals.length > 0 && (
+        {dailyTotals.some((d) => d.total > 0) && (
           <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
             <MonthlyBarChart data={dailyTotals} />
           </View>

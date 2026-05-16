@@ -23,35 +23,36 @@ export default function CategoryPieChart({ data, total, currency }: Props) {
   }));
 
   return (
-    <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, paddingVertical: 20, alignItems: 'center' }}>
-      <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 16 }}>
+    <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, paddingVertical: 20 }}>
+      <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 16, paddingHorizontal: 14 }}>
         // SPENDING.BREAKDOWN
       </Text>
-      <PieChart
-        data={pieData}
-        donut
-        radius={90}
-        innerRadius={56}
-        innerCircleColor={T.surface}
-        centerLabelComponent={() => (
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>TOTAL</Text>
-            <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
-              {formatCurrency(total, currency)}
-            </Text>
-          </View>
-        )}
-      />
-      {/* Legend */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, paddingHorizontal: 16, gap: 8 }}>
-        {data.map((row) => (
-          <View key={row.categoryId} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <View style={{ width: 6, height: 6, backgroundColor: toGray(row.categoryColor) }} />
-            <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>
-              {row.categoryName.toUpperCase()}
-            </Text>
-          </View>
-        ))}
+      <View style={{ alignItems: 'center' }}>
+        <PieChart
+          data={pieData}
+          donut
+          radius={90}
+          innerRadius={56}
+          innerCircleColor={T.surface}
+          centerLabelComponent={() => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>TOTAL</Text>
+              <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
+                {formatCurrency(total, currency)}
+              </Text>
+            </View>
+          )}
+        />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, paddingHorizontal: 14, gap: 8 }}>
+          {data.map((row) => (
+            <View key={row.categoryId} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <View style={{ width: 6, height: 6, backgroundColor: toGray(row.categoryColor) }} />
+              <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>
+                {row.categoryName.toUpperCase()}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
     </View>
   );

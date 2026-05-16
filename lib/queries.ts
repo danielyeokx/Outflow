@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { db } from "./db";
 import { expenses, categories, learnedKeywords, recurringExpenses } from "./schema";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
-import { monthBounds } from "./format";
+import { monthBounds, todayISO } from "./format";
 import { readSettings } from "./settings";
 import { convertCurrency } from "./rates";
 import { KEYWORD_MAP } from "./categorize";
@@ -104,7 +104,18 @@ export function useDailyTotals(monthISO: string) {
         const converted = convertCurrency(r.amountCents, r.currency, defaultCurrency);
         map.set(r.day, (map.get(r.day) ?? 0) + converted);
       }
-      return Array.from(map.entries()).map(([day, total]) => ({ day, total })).sort((a, b) => a.day.localeCompare(b.day));
+
+      // Last 10 days ending at min(today, monthEnd) — all days shown, zero for no-spend days
+      const today = todayISO();
+      const windowEnd = today < end ? today : end;
+      const days: string[] = [];
+      for (let i = 9; i >= 0; i--) {
+        const d = new Date(windowEnd + 'T12:00:00Z'); // UTC noon avoids DST off-by-one
+        d.setUTCDate(d.getUTCDate() - i);
+        const iso = d.toISOString().slice(0, 10);
+        if (iso >= start) days.push(iso);
+      }
+      return days.map((day) => ({ day, total: map.get(day) ?? 0 }));
     },
   });
 }

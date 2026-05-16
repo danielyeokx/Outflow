@@ -64,7 +64,7 @@ export function useAddExpense() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
   });
@@ -79,7 +79,7 @@ export function useDeleteExpense() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
   });
@@ -198,7 +198,7 @@ export function useUpdateExpense() {
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.invalidateQueries({ queryKey: ["expense", id] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
@@ -295,7 +295,7 @@ export function useSetDefaultCurrency() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       queryClient.invalidateQueries({ queryKey: ["monthly-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
     },
   });
 }
@@ -374,7 +374,7 @@ export function useClearAllData() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.invalidateQueries({ queryKey: ["recurring"] });
       queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
     },

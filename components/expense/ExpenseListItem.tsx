@@ -32,7 +32,7 @@ export default function ExpenseListItem({ expense, onDelete, onPress }: Props) {
       marginBottom: 6,
       overflow: 'hidden',
     }}>
-      <Pressable onPress={onPress} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12 }}>
+      <Pressable onPress={onPress} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 }}>
         {({ pressed }) => (
           <>
             <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: pressed ? T.border : T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
@@ -57,7 +57,7 @@ export default function ExpenseListItem({ expense, onDelete, onPress }: Props) {
           </>
         )}
       </Pressable>
-      <Pressable onPress={onDelete} hitSlop={8} style={{ paddingHorizontal: 12, paddingVertical: 12 }}>
+      <Pressable onPress={onDelete} hitSlop={8} style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
         <Trash2 size={14} color={T.text.muted} />
       </Pressable>
     </View>

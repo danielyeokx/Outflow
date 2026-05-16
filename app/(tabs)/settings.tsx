@@ -132,7 +132,7 @@ export default function SettingsScreen() {
             <SectionLabel label={`// CATEGORIES [${cats.length}]`} />
             <Pressable
               onPress={() => router.push('/category/new')}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 11, paddingHorizontal: 14, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
             >
               <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>+ NEW</Text>
             </Pressable>
@@ -175,7 +175,7 @@ export default function SettingsScreen() {
                       onPress={() => { setCurrency(c.code); setCurrencyOpen(false); }}
                     >
                       {({ pressed }) => (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 10, borderRadius: T.radius, backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: T.radius, backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent' }}>
                           <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', width: 44 }}>{c.code}</Text>
                           <Text style={{ color: T.text.muted, fontSize: 11, fontFamily: 'SpaceMono-Regular', flex: 1 }}>{c.label}</Text>
                           {active && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: T.text.secondary }} />}
