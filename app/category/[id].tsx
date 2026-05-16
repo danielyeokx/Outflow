@@ -73,7 +73,7 @@ export default function CategoryDetailScreen() {
 
       <View style={{ height: 1, backgroundColor: T.border, marginHorizontal: 20, marginBottom: 20 }} />
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false} automaticallyAdjustKeyboardInsets>
 
         {/* Add keyword input */}
         <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 10 }}>
@@ -93,7 +93,7 @@ export default function CategoryDetailScreen() {
               paddingHorizontal: 14,
               paddingVertical: 12,
             }}
-            placeholder="type keyword..."
+            placeholder="TYPE KEYWORD..."
             placeholderTextColor={T.text.muted}
             value={newKw}
             onChangeText={setNewKw}

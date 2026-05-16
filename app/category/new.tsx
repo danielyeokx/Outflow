@@ -51,7 +51,7 @@ export default function NewCategoryScreen() {
       <View style={{ height: 1, backgroundColor: T.border }} />
 
       {/* Scrollable content */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8, gap: 0 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8, gap: 0 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
 
         <Text style={L}>CATEGORY.NAME</Text>
         <TextInput

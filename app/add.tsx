@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable,
-  ScrollView, ActivityIndicator, Alert,
+  View, Text, TextInput, Pressable, Modal,
+  ActivityIndicator, Alert,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { format, parseISO } from "date-fns";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { X, ChevronLeft, ChevronRight } from "lucide-react-native";
@@ -45,6 +48,8 @@ export default function AddScreen() {
   const [type, setType] = useState<"single" | "recurring">("single");
   const [amountDigits, setAmountDigits] = useState("");
   const [hasExpiry, setHasExpiry] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pendingDate, setPendingDate] = useState(new Date());
   const autoPickedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentYear = new Date().getFullYear();
@@ -58,7 +63,7 @@ export default function AddScreen() {
     resolver: zodResolver(recurringFormSchema),
     defaultValues: {
       amountCents: 0, itemName: "", categoryId: "",
-      frequency: "monthly", dayOfMonth: 1, dayOfWeek: 1,
+      frequency: "monthly", dayOfMonth: undefined, dayOfWeek: 1,
       intervalDays: 30, monthOfYear: 1,
       expiryMonth: new Date().getMonth() + 1, expiryYear: currentYear + 1,
     },
@@ -135,7 +140,7 @@ export default function AddScreen() {
       <View style={{ height: 1, backgroundColor: T.border }} />
 
       {/* Scrollable form fields */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8, gap: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} extraScrollHeight={24} enableOnAndroid>
 
         {/* Amount */}
         <View>
@@ -153,8 +158,8 @@ export default function AddScreen() {
         <View>
           <Text style={L}>ITEM.NAME</Text>
           <TextInput
-            style={{ ...input, borderColor: errors.itemName ? '#666' : T.border }}
-            placeholder="describe expense..." placeholderTextColor={T.text.muted}
+            style={{ ...input, fontSize: 26, fontFamily: 'SpaceMono-Regular', borderColor: errors.itemName ? '#666' : T.border }}
+            placeholder="DESCRIBE EXPENSE..." placeholderTextColor={T.text.muted}
             value={itemName} onChangeText={syncItemName} returnKeyType="next"
           />
           {errors.itemName && <Text style={{ color: '#888', fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 4 }}>{errors.itemName.message}</Text>}
@@ -171,7 +176,38 @@ export default function AddScreen() {
           <View>
             <Text style={L}>DATE</Text>
             <Controller control={singleForm.control} name="spentAt" render={({ field: { onChange, value } }) => (
-              <TextInput style={{ ...input, fontFamily: 'SpaceMono-Regular' }} placeholder="YYYY-MM-DD" placeholderTextColor={T.text.muted} value={value} onChangeText={onChange} keyboardType="numbers-and-punctuation" />
+              <>
+                <Pressable
+                  style={{ ...input, justifyContent: 'center' }}
+                  onPress={() => {
+                    setPendingDate(value ? parseISO(value) : new Date());
+                    setShowDatePicker(true);
+                  }}
+                >
+                  <Text style={{ color: T.text.primary, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{value}</Text>
+                </Pressable>
+
+                <Modal visible={showDatePicker} transparent animationType="fade">
+                  <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' }} onPress={() => setShowDatePicker(false)} />
+                  <View style={{ backgroundColor: T.bg, borderTopWidth: 1, borderTopColor: T.border, paddingBottom: insets.bottom }}>
+                    <DateTimePicker
+                      value={pendingDate}
+                      mode="date"
+                      display="inline"
+                      themeVariant="dark"
+                      maximumDate={new Date()}
+                      onChange={(_, date) => { if (date) setPendingDate(date); }}
+                      style={{ alignSelf: 'center' }}
+                    />
+                    <Pressable
+                      onPress={() => { onChange(format(pendingDate, 'yyyy-MM-dd')); setShowDatePicker(false); }}
+                      style={{ marginHorizontal: 20, marginTop: 4, marginBottom: 12, paddingVertical: 14, borderRadius: T.radius, backgroundColor: T.elevated, borderWidth: 1, borderColor: T.border, alignItems: 'center' }}
+                    >
+                      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', letterSpacing: 2 }}>CONFIRM</Text>
+                    </Pressable>
+                  </View>
+                </Modal>
+              </>
             )} />
           </View>
         )}
@@ -183,8 +219,8 @@ export default function AddScreen() {
             {(["single", "recurring"] as const).map((t) => {
               const active = type === t;
               return (
-                <Pressable key={t} onPress={() => setType(t)} style={{ flex: 1, paddingVertical: 12, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
-                  <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 2 }}>{t === "single" ? "SINGLE" : "RECURRING"}</Text>
+                <Pressable key={t} onPress={() => setType(t)} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
+                  <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular', letterSpacing: 2 }}>{t === "single" ? "SINGLE" : "RECURRING"}</Text>
                 </Pressable>
               );
             })}
@@ -200,8 +236,8 @@ export default function AddScreen() {
                 {FREQ_OPTIONS.map((opt) => {
                   const active = frequency === opt.value;
                   return (
-                    <Pressable key={opt.value} onPress={() => recurringForm.setValue("frequency", opt.value)} style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
-                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
+                    <Pressable key={opt.value} onPress={() => recurringForm.setValue("frequency", opt.value)} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
+                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
                     </Pressable>
                   );
                 })}
@@ -212,7 +248,7 @@ export default function AddScreen() {
               <View>
                 <Text style={L}>DAY OF MONTH</Text>
                 <Controller control={recurringForm.control} name="dayOfMonth" render={({ field: { onChange, value } }) => (
-                  <TextInput style={{ ...input, fontFamily: 'SpaceMono-Regular' }} placeholder="1" placeholderTextColor={T.text.muted} keyboardType="number-pad" value={value?.toString() ?? ""} onChangeText={(t) => onChange(Math.min(31, Math.max(1, parseInt(t) || 1)))} />
+                  <TextInput style={{ ...input, fontFamily: 'SpaceMono-Regular' }} placeholder="1–31" placeholderTextColor={T.text.muted} keyboardType="number-pad" value={value?.toString() ?? ""} onChangeText={(t) => { if (!t) { onChange(undefined); return; } const n = parseInt(t, 10); if (!isNaN(n)) onChange(Math.min(31, Math.max(1, n))); }} />
                 )} />
               </View>
             )}
@@ -224,8 +260,8 @@ export default function AddScreen() {
                   {DAYS_OF_WEEK.map((d, i) => {
                     const active = recurringForm.watch("dayOfWeek") === i;
                     return (
-                      <Pressable key={d} onPress={() => recurringForm.setValue("dayOfWeek", i)} style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
-                        <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 8, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
+                      <Pressable key={d} onPress={() => recurringForm.setValue("dayOfWeek", i)} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
+                        <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
                       </Pressable>
                     );
                   })}
@@ -240,8 +276,8 @@ export default function AddScreen() {
                   {MONTHS_SHORT.map((m, i) => {
                     const active = recurringForm.watch("monthOfYear") === i + 1;
                     return (
-                      <Pressable key={m} onPress={() => recurringForm.setValue("monthOfYear", i + 1)} style={{ paddingVertical: 8, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}>
-                        <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                      <Pressable key={m} onPress={() => recurringForm.setValue("monthOfYear", i + 1)} style={{ paddingVertical: 13, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}>
+                        <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
                       </Pressable>
                     );
                   })}
@@ -264,8 +300,8 @@ export default function AddScreen() {
                 {[false, true].map((val) => {
                   const active = hasExpiry === val;
                   return (
-                    <Pressable key={String(val)} onPress={() => setHasExpiry(val)} style={{ flex: 1, paddingVertical: 12, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
-                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{val ? "UNTIL" : "FOREVER"}</Text>
+                    <Pressable key={String(val)} onPress={() => setHasExpiry(val)} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}>
+                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{val ? "UNTIL" : "FOREVER"}</Text>
                     </Pressable>
                   );
                 })}
@@ -274,15 +310,20 @@ export default function AddScreen() {
                 <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, gap: 14 }}>
                   <View>
                     <Text style={{ ...L, marginBottom: 10 }}>MONTH</Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                      {MONTHS_SHORT.map((m, i) => {
-                        const active = expiryMonth === i + 1;
-                        return (
-                          <Pressable key={m} onPress={() => recurringForm.setValue("expiryMonth", i + 1)} style={{ paddingVertical: 7, paddingHorizontal: 9, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent' }}>
-                            <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
-                          </Pressable>
-                        );
-                      })}
+                    <View style={{ gap: 5 }}>
+                      {[MONTHS_SHORT.slice(0, 6), MONTHS_SHORT.slice(6)].map((row, rowIdx) => (
+                        <View key={rowIdx} style={{ flexDirection: 'row', gap: 5 }}>
+                          {row.map((m, i) => {
+                            const monthIdx = rowIdx * 6 + i;
+                            const active = expiryMonth === monthIdx + 1;
+                            return (
+                              <Pressable key={m} onPress={() => recurringForm.setValue("expiryMonth", monthIdx + 1)} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}>
+                                <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      ))}
                     </View>
                   </View>
                   <View>
@@ -302,7 +343,7 @@ export default function AddScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Sticky confirm button */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, borderTopWidth: 1, borderTopColor: T.border }}>

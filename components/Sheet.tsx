@@ -1,4 +1,4 @@
-import { View, Pressable, useWindowDimensions, Platform, KeyboardAvoidingView } from "react-native";
+import { View, Pressable, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { T } from "../lib/theme";
@@ -13,17 +13,11 @@ export default function Sheet({ children }: Props) {
   const sheetHeight = height * 0.8;
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, justifyContent: "flex-end" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      {/* Tap-to-dismiss overlay — top 20% */}
+    <View style={{ flex: 1, justifyContent: "flex-end" }}>
       <Pressable
         style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.65)" }}
         onPress={() => router.back()}
       />
-
-      {/* Sheet — bottom 80% */}
       <View
         style={{
           height: sheetHeight,
@@ -35,6 +29,6 @@ export default function Sheet({ children }: Props) {
       >
         {children}
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-05-16
+
+- [x] **Text consistency: item name field** — added SpaceMono-Regular to base input style in theme.ts; uppercased all sentence-case placeholders across add.tsx, category/[id].tsx, recurring/new.tsx
+- [x] **Sheet + keyboard bug** — replaced KeyboardAvoidingView with react-native-keyboard-aware-scroll-view; extraScrollHeight={24} gives gap between focused input and keyboard
+- [x] **Day-of-month number entry** — changed default from pre-filled "1" to blank; onChangeText now resets to undefined on clear; matches amount entry behaviour
+
+---
+
 ## 2026-05-15 / 2026-05-16
 
 - [x] Scaffold Expo app with TypeScript + Expo Router

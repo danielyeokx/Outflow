@@ -118,8 +118,8 @@ export default function NewRecurringScreen() {
             <Text style={labelStyle}>ITEM.NAME</Text>
             <Controller control={control} name="itemName" render={({ field: { onChange, value, onBlur } }) => (
               <TextInput
-                style={{ ...input, borderColor: errors.itemName ? '#666' : T.border }}
-                placeholder="describe recurring expense..."
+                style={{ ...input, fontSize: 26, borderColor: errors.itemName ? '#666' : T.border }}
+                placeholder="DESCRIBE RECURRING EXPENSE..."
                 placeholderTextColor={T.text.muted}
                 value={value}
                 onChangeText={onChange}
@@ -147,9 +147,9 @@ export default function NewRecurringScreen() {
                   <Pressable
                     key={opt.value}
                     onPress={() => setValue("frequency", opt.value)}
-                    style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
+                    style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
                   >
-                    <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
+                    <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
                   </Pressable>
                 );
               })}
@@ -183,9 +183,9 @@ export default function NewRecurringScreen() {
                     <Pressable
                       key={d}
                       onPress={() => setValue("dayOfWeek", i)}
-                      style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
+                      style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
                     >
-                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 8, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
+                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
                     </Pressable>
                   );
                 })}
@@ -203,9 +203,9 @@ export default function NewRecurringScreen() {
                     <Pressable
                       key={m}
                       onPress={() => setValue("monthOfYear", i + 1)}
-                      style={{ paddingVertical: 8, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}
+                      style={{ paddingVertical: 13, paddingHorizontal: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface }}
                     >
-                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                      <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
                     </Pressable>
                   );
                 })}
@@ -239,9 +239,9 @@ export default function NewRecurringScreen() {
                   <Pressable
                     key={String(val)}
                     onPress={() => setHasExpiry(val)}
-                    style={{ flex: 1, paddingVertical: 12, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
+                    style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : T.surface, alignItems: 'center' }}
                   >
-                    <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>
+                    <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>
                       {val ? "UNTIL" : "FOREVER"}
                     </Text>
                   </Pressable>
@@ -254,19 +254,24 @@ export default function NewRecurringScreen() {
                 {/* Month picker */}
                 <View>
                   <Text style={{ ...labelStyle, marginBottom: 10 }}>MONTH</Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                    {MONTHS.map((m, i) => {
-                      const active = expiryMonth === i + 1;
-                      return (
-                        <Pressable
-                          key={m}
-                          onPress={() => setValue("expiryMonth", i + 1)}
-                          style={{ paddingVertical: 7, paddingHorizontal: 9, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent' }}
-                        >
-                          <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
-                        </Pressable>
-                      );
-                    })}
+                  <View style={{ gap: 5 }}>
+                    {[MONTHS.slice(0, 6), MONTHS.slice(6)].map((row, rowIdx) => (
+                      <View key={rowIdx} style={{ flexDirection: 'row', gap: 5 }}>
+                        {row.map((m, i) => {
+                          const monthIdx = rowIdx * 6 + i;
+                          const active = expiryMonth === monthIdx + 1;
+                          return (
+                            <Pressable
+                              key={m}
+                              onPress={() => setValue("expiryMonth", monthIdx + 1)}
+                              style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}
+                            >
+                              <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    ))}
                   </View>
                 </View>
 

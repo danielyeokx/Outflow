@@ -39,7 +39,8 @@ export const input = {
   borderColor: '#2A2A2A',
   borderRadius: 4,
   color: '#FFFFFF',
-  fontSize: 16,
+  fontSize: 14,
+  fontFamily: 'SpaceMono-Regular',
   paddingHorizontal: 14,
   paddingVertical: 13,
 } as const;
