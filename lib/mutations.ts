@@ -64,6 +64,7 @@ export function useAddExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
   });
 }
@@ -78,6 +79,7 @@ export function useDeleteExpense() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
   });
 }
@@ -174,6 +176,30 @@ export function useDeleteCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useUpdateExpense() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, values, currency }: { id: string; values: ExpenseFormValues; currency: string }) => {
+      const { defaultCurrency } = await readSettings();
+      await db.update(expenses).set({
+        categoryId: values.categoryId,
+        amountCents: values.amountCents,
+        currency: currency ?? values.currency ?? defaultCurrency,
+        itemName: values.itemName,
+        spentAt: values.spentAt ?? todayISO(),
+        note: values.note ?? null,
+      }).where(eq(expenses.id, id));
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.invalidateQueries({ queryKey: ["expense", id] });
+      queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
   });
 }

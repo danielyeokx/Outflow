@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, SectionList, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { todayISO, addMonths, formatDate } from "../../lib/format";
 import { T } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
@@ -69,6 +70,7 @@ export default function ExpensesScreen() {
           renderItem={({ item }) => (
             <ExpenseListItem
               expense={item}
+              onPress={() => router.push(`/expense/${item.id}`)}
               onDelete={() => confirmDelete(item.id, item.itemName)}
             />
           )}

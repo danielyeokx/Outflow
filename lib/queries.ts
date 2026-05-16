@@ -155,6 +155,27 @@ export function useRecurring() {
 
 export type RecurringWithCategory = NonNullable<ReturnType<typeof useRecurring>["data"]>[number];
 
+export function useExpense(id: string) {
+  return useQuery({
+    queryKey: ["expense", id],
+    queryFn: () =>
+      db
+        .select({
+          id: expenses.id,
+          categoryId: expenses.categoryId,
+          amountCents: expenses.amountCents,
+          currency: expenses.currency,
+          itemName: expenses.itemName,
+          spentAt: expenses.spentAt,
+          note: expenses.note,
+        })
+        .from(expenses)
+        .where(eq(expenses.id, id))
+        .then((rows) => rows[0] ?? null),
+    enabled: !!id,
+  });
+}
+
 export function useDefaultCurrency() {
   return useQuery({
     queryKey: ["settings", "defaultCurrency"],

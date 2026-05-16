@@ -11,9 +11,10 @@ type IconName = keyof typeof Icons;
 interface Props {
   expense: ExpenseWithCategory;
   onDelete: () => void;
+  onPress: () => void;
 }
 
-export default function ExpenseListItem({ expense, onDelete }: Props) {
+export default function ExpenseListItem({ expense, onDelete, onPress }: Props) {
   const IconComponent = (Icons[(expense.categoryIcon as IconName)] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
   const gray = toGray(expense.categoryColor);
   const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
@@ -28,30 +29,35 @@ export default function ExpenseListItem({ expense, onDelete }: Props) {
       borderWidth: 1,
       borderColor: T.border,
       borderRadius: T.radius,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
       marginBottom: 6,
+      overflow: 'hidden',
     }}>
-      <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-        <IconComponent size={15} color={gray} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: T.text.primary, fontSize: 13 }} numberOfLines={1}>{expense.itemName}</Text>
-        <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
-          {expense.categoryName.toUpperCase()}
-        </Text>
-      </View>
-      <View style={{ alignItems: 'flex-end', marginRight: 12 }}>
-        <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular' }}>
-          {formatCurrency(expense.amountCents, expense.currency)}
-        </Text>
-        {showConversion && (
-          <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
-            ~{formatCurrency(convertedCents, defaultCurrency)}
-          </Text>
+      <Pressable onPress={onPress} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12 }}>
+        {({ pressed }) => (
+          <>
+            <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: pressed ? T.border : T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+              <IconComponent size={15} color={gray} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: pressed ? T.text.secondary : T.text.primary, fontSize: 13 }} numberOfLines={1}>{expense.itemName}</Text>
+              <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
+                {expense.categoryName.toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ color: pressed ? T.text.secondary : T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular' }}>
+                {formatCurrency(expense.amountCents, expense.currency)}
+              </Text>
+              {showConversion && (
+                <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
+                  ~{formatCurrency(convertedCents, defaultCurrency)}
+                </Text>
+              )}
+            </View>
+          </>
         )}
-      </View>
-      <Pressable onPress={onDelete} hitSlop={8}>
+      </Pressable>
+      <Pressable onPress={onDelete} hitSlop={8} style={{ paddingHorizontal: 12, paddingVertical: 12 }}>
         <Trash2 size={14} color={T.text.muted} />
       </Pressable>
     </View>

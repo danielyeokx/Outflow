@@ -6,10 +6,10 @@ Move completed items to `task-archive.md`. Keep this file short and actionable.
 
 ## Backlog
 
-- [ ] **Expense edit** — tap an expense in the list to edit amount, category, date.
-- [ ] **Overview polish** — empty state for months with no data is plain text. Add icon + better layout.
-- [ ] **Bar chart bottom padding** — labels still slightly clipped on some screen sizes. Fine-tune `paddingBottom`.
-- [ ] **Recurring tab + button context** — center + on Recurring tab could default TYPE to RECURRING in the add modal.
+- [x] **Expense edit** — tap an expense in the list to edit amount, category, date.
+- [x] **Overview polish** — empty state for months with no data is plain text. Add icon + better layout.
+- [x] **Bar chart bottom padding** — labels still slightly clipped on some screen sizes. Fine-tune `paddingBottom`.
+- [x] **Recurring tab + button context** — center + on Recurring tab could default TYPE to RECURRING in the add modal.
 - [ ] **App icon + splash screen** — currently default Expo assets.
 - [ ] **Certificate renewal reminder** — 7-day free Apple ID cert. Consider upgrading to paid ($99/yr) for 1-year cert.
 

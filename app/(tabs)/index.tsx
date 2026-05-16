@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect, router } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatCurrency, todayISO, addMonths } from "../../lib/format";
 import { T } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
@@ -13,9 +15,14 @@ import { useMonthlySummary, useDailyTotals, useDefaultCurrency } from "../../lib
 
 export default function OverviewScreen() {
   const [currentMonth, setCurrentMonth] = useState(todayISO());
-  const { data: summary } = useMonthlySummary(currentMonth);
-  const { data: dailyTotals = [] } = useDailyTotals(currentMonth);
+  const { data: summary, refetch: refetchSummary } = useMonthlySummary(currentMonth);
+  const { data: dailyTotals = [], refetch: refetchDailyTotals } = useDailyTotals(currentMonth);
   const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
+
+  useFocusEffect(useCallback(() => {
+    refetchSummary();
+    refetchDailyTotals();
+  }, [currentMonth]));
 
   const categoryRows = summary?.rows ?? [];
   const grandTotal = summary?.grandTotal ?? 0;
@@ -63,10 +70,20 @@ export default function OverviewScreen() {
         )}
 
         {isEmpty && (
-          <View style={{ alignItems: 'center', paddingTop: 60 }}>
+          <View style={{ alignItems: 'center', paddingTop: 60, gap: 24 }}>
             <Text style={{ color: T.text.muted, fontSize: 12, letterSpacing: 2, fontFamily: 'SpaceMono-Regular', textAlign: 'center' }}>
-              {'[ NO DATA ]\n\nTap + to log an expense.'}
+              {'[ NO DATA ]'}
             </Text>
+            <Text style={{ color: T.text.muted, fontSize: 11, fontFamily: 'SpaceMono-Regular', textAlign: 'center', lineHeight: 18 }}>
+              {'NO EXPENSES LOGGED\nFOR THIS MONTH.'}
+            </Text>
+            <Pressable onPress={() => router.push('/add')}>
+              {({ pressed }) => (
+                <View style={{ paddingVertical: 13, paddingHorizontal: 24, borderWidth: 1, borderColor: pressed ? T.text.secondary : T.border, borderRadius: T.radius, backgroundColor: pressed ? T.elevated : T.surface }}>
+                  <Text style={{ color: pressed ? T.text.primary : T.text.muted, fontSize: 11, fontFamily: 'SpaceMono-Regular', letterSpacing: 3 }}>+ LOG EXPENSE</Text>
+                </View>
+              )}
+            </Pressable>
           </View>
         )}
       </ScrollView>

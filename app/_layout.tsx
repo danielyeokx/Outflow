@@ -65,6 +65,7 @@ export default function RootLayout() {
             <Stack.Screen name="category/new" options={{ presentation: "transparentModal" }} />
             <Stack.Screen name="recurring/new" options={{ presentation: "transparentModal" }} />
             <Stack.Screen name="recurring/[id]" options={{ presentation: "transparentModal" }} />
+            <Stack.Screen name="expense/[id]" options={{ presentation: "transparentModal" }} />
           </Stack>
         </MigrationGate>
       </QueryClientProvider>

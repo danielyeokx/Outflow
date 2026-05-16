@@ -1,11 +1,14 @@
 import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
+import { getCurrencyDecimals } from "./rates";
 
-export function formatCurrency(cents: number, currency = "SGD"): string {
-  const amount = cents / 100;
+export function formatCurrency(minor: number, currency = "SGD"): string {
+  const decimals = getCurrencyDecimals(currency);
+  const amount = minor / Math.pow(10, decimals);
   return new Intl.NumberFormat("en-SG", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   }).format(amount);
 }
 

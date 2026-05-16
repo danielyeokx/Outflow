@@ -15,7 +15,7 @@ import { useCategories, useLearnedKeywords, useDefaultCurrency } from "../lib/qu
 import { useAddExpense, useAddRecurring } from "../lib/mutations";
 import { suggestCategoryId } from "../lib/categorize";
 import { todayISO } from "../lib/format";
-import { CURRENCIES } from "../lib/rates";
+import { CURRENCIES, getCurrencyDecimals } from "../lib/rates";
 import { T, input } from "../lib/theme";
 import Sheet from "../components/Sheet";
 import CategoryPicker from "../components/expense/CategoryPicker";
@@ -30,8 +30,9 @@ const FREQ_OPTIONS = [
 const DAYS_OF_WEEK = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 const MONTHS_SHORT = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
-function formatDigits(d: string): string {
+function formatDigits(d: string, decimals: number): string {
   if (!d) return "";
+  if (decimals === 0) return String(parseInt(d, 10));
   const p = d.padStart(3, "0");
   return `${String(parseInt(p.slice(0, -2), 10))}.${p.slice(-2)}`;
 }
@@ -165,9 +166,9 @@ export default function AddScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'stretch', gap: 8 }}>
             <TextInput
               style={{ ...input, flex: 1, fontSize: 26, fontFamily: 'SpaceMono-Regular', borderColor: errors.amountCents ? '#666' : T.border }}
-              placeholder="> 0.00" placeholderTextColor={T.text.muted} keyboardType="number-pad"
-              value={amountDigits ? `> ${formatDigits(amountDigits)}` : ""}
-              onChangeText={(text) => { const d = text.replace(/\D/g, "").slice(-7); setAmountDigits(d); syncAmount(d); }}
+              placeholder={getCurrencyDecimals(currency) === 0 ? "> 0" : "> 0.00"} placeholderTextColor={T.text.muted} keyboardType="number-pad"
+              value={amountDigits ? `> ${formatDigits(amountDigits, getCurrencyDecimals(currency))}` : ""}
+              onChangeText={(text) => { const d = text.replace(/\D/g, "").slice(-(getCurrencyDecimals(currency) === 0 ? 9 : 7)); setAmountDigits(d); syncAmount(d); }}
             />
             <Pressable
               onPress={() => setCurrencyPickerOpen((o) => !o)}
