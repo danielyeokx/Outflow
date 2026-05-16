@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-16 (session 6)
+
+- [x] **Settings: Clear All Keywords** — clears DB + disables static map via flag; category detail hides static keywords; auto-suggest off
+- [x] **Settings: Reset Categories to Defaults** — re-seeds 8 defaults, removes unused custom categories, clears keywords, re-enables static map
+- [x] **Settings: data section layout** — export separated from destructive actions into its own card
+
 ## 2026-05-16 (session 5)
 
 - [x] **Expense edit** — tap expense row body to open pre-populated edit sheet; full CRUD on amount, item name, category, date, currency

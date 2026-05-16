@@ -4,6 +4,16 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-16 (session 6)
+
+[FEATURE] Settings — Clear All Keywords: deletes `learned_keywords` table + sets `staticKeywordsEnabled: false` in settings.json; stops auto-suggest and hides static keywords in category detail; keyword learning on new expense entry continues unaffected
+[FEATURE] Settings — Reset Categories to Defaults: removes unused custom categories (no expense/recurring refs), re-seeds 8 defaults (restores names/icons/colors), clears keywords, re-enables static keywords
+[FEATURE] Settings — data section split into two cards: Export to CSV alone in first card; Clear All Keywords + Reset Categories + Clear All Data grouped in second card below with 12px gap
+[FIX] Static keywords now respect `staticKeywordsEnabled` flag in category detail screen — `getStaticKeywordsForCategory` result gated behind `useStaticKeywordsEnabled` query
+[INFRA] `KEYWORD_MAP` exported from `categorize.ts`; `useLearnedKeywords` merges static map when `staticKeywordsEnabled: true` (DB overrides static); `suggestCategoryId` only checks `learnedMap` (no separate static map lookup)
+[INFRA] `useStaticKeywordsEnabled` query added to `queries.ts`; `staticKeywordsEnabled: boolean` added to `AppSettings` in `settings.ts` (default: true)
+[UI] All three destructive actions (Clear All Keywords, Reset Categories, Clear All Data) consistently require double-confirm Alert
+
 ## 2026-05-16 (session 5)
 
 [FEATURE] Expense edit — tap expense row body in list to open pre-populated edit sheet (`app/expense/[id].tsx`); transparentModal Sheet; fields: amount, item name, category, date, currency; trash icon in header triggers delete-with-confirm; `[ SAVE ]` sticky button
