@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Modal,
+  View, Text, TextInput, Pressable,
   ActivityIndicator, Alert,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, getDaysInMonth } from "date-fns";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { X, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { X, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { expenseFormSchema, recurringFormSchema, ExpenseFormValues, RecurringFormValues } from "../lib/schema";
@@ -48,10 +47,11 @@ export default function AddScreen() {
   const [type, setType] = useState<"single" | "recurring">("single");
   const [amountDigits, setAmountDigits] = useState("");
   const [hasExpiry, setHasExpiry] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pendingDate, setPendingDate] = useState(new Date());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const autoPickedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRef = useRef<any>(null);
+  const dateSectionY = useRef(0);
   const currentYear = new Date().getFullYear();
 
   const singleForm = useForm<ExpenseFormValues>({
@@ -71,6 +71,7 @@ export default function AddScreen() {
 
   const itemName = type === "single" ? singleForm.watch("itemName") : recurringForm.watch("itemName");
   const categoryId = type === "single" ? singleForm.watch("categoryId") : recurringForm.watch("categoryId");
+  const spentAt = singleForm.watch("spentAt");
   const frequency = recurringForm.watch("frequency");
   const expiryMonth = recurringForm.watch("expiryMonth") ?? new Date().getMonth() + 1;
   const expiryYear = recurringForm.watch("expiryYear") ?? currentYear + 1;
@@ -91,6 +92,13 @@ export default function AddScreen() {
     recurringForm.setValue("categoryId", id);
     autoPickedRef.current = false;
   }
+
+  useEffect(() => {
+    if (!datePickerOpen) return;
+    setTimeout(() => {
+      scrollRef.current?.scrollToPosition(0, dateSectionY.current, true);
+    }, 50);
+  }, [datePickerOpen]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -140,7 +148,7 @@ export default function AddScreen() {
       <View style={{ height: 1, backgroundColor: T.border }} />
 
       {/* Scrollable form fields */}
-      <KeyboardAwareScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} extraScrollHeight={24} enableOnAndroid>
+      <KeyboardAwareScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} extraScrollHeight={24} enableOnAndroid>
 
         {/* Amount */}
         <View>
@@ -165,52 +173,112 @@ export default function AddScreen() {
           {errors.itemName && <Text style={{ color: '#888', fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 4 }}>{errors.itemName.message}</Text>}
         </View>
 
-        {/* Category */}
-        <View>
-          <Text style={L}>CATEGORY</Text>
-          <CategoryPicker categories={categories} value={categoryId || null} onChange={syncCategory} error={errors.categoryId?.message} />
+        {/* Category + Date row */}
+        <View style={{ flexDirection: 'row', gap: 8 }} onLayout={(e) => { dateSectionY.current = e.nativeEvent.layout.y; }}>
+          <View style={{ flex: 1 }}>
+            <Text style={L}>CATEGORY</Text>
+            <CategoryPicker categories={categories} value={categoryId || null} onChange={syncCategory} error={errors.categoryId?.message} />
+          </View>
+          {type === "single" && (
+            <View style={{ flex: 1 }}>
+              <Text style={L}>DATE</Text>
+              <Pressable
+                style={{ ...input, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                onPress={() => setDatePickerOpen(o => !o)}
+              >
+                <Text style={{ color: T.text.primary, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>
+                  {format(spentAt ? parseISO(spentAt) : new Date(), 'd MMM yyyy').toUpperCase()}
+                </Text>
+                <CalendarDays size={16} color={T.text.secondary} />
+              </Pressable>
+            </View>
+          )}
         </View>
 
-        {/* Date — single only */}
-        {type === "single" && (
-          <View>
-            <Text style={L}>DATE</Text>
-            <Controller control={singleForm.control} name="spentAt" render={({ field: { onChange, value } }) => (
-              <>
-                <Pressable
-                  style={{ ...input, justifyContent: 'center' }}
-                  onPress={() => {
-                    setPendingDate(value ? parseISO(value) : new Date());
-                    setShowDatePicker(true);
-                  }}
-                >
-                  <Text style={{ color: T.text.primary, fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{value}</Text>
-                </Pressable>
+        {/* Date picker — expands full width below the row */}
+        {type === "single" && datePickerOpen && (() => {
+          const date = spentAt ? parseISO(spentAt) : new Date();
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          const today = new Date();
+          const daysInMonth = getDaysInMonth(new Date(year, month - 1));
 
-                <Modal visible={showDatePicker} transparent animationType="fade">
-                  <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)' }} onPress={() => setShowDatePicker(false)} />
-                  <View style={{ backgroundColor: T.bg, borderTopWidth: 1, borderTopColor: T.border, paddingBottom: insets.bottom }}>
-                    <DateTimePicker
-                      value={pendingDate}
-                      mode="date"
-                      display="inline"
-                      themeVariant="dark"
-                      maximumDate={new Date()}
-                      onChange={(_, date) => { if (date) setPendingDate(date); }}
-                      style={{ alignSelf: 'center' }}
-                    />
-                    <Pressable
-                      onPress={() => { onChange(format(pendingDate, 'yyyy-MM-dd')); setShowDatePicker(false); }}
-                      style={{ marginHorizontal: 20, marginTop: 4, marginBottom: 12, paddingVertical: 14, borderRadius: T.radius, backgroundColor: T.elevated, borderWidth: 1, borderColor: T.border, alignItems: 'center' }}
-                    >
-                      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', letterSpacing: 2 }}>CONFIRM</Text>
-                    </Pressable>
-                  </View>
-                </Modal>
-              </>
-            )} />
-          </View>
-        )}
+          function updateDate(y: number, m: number, d: number) {
+            const maxDay = getDaysInMonth(new Date(y, m - 1));
+            singleForm.setValue("spentAt", format(new Date(y, m - 1, Math.min(d, maxDay)), 'yyyy-MM-dd'));
+          }
+
+          const dayRows: number[][] = [];
+          for (let r = 0; r < Math.ceil(31 / 7); r++) {
+            dayRows.push(Array.from({ length: 7 }, (_, i) => r * 7 + i + 1));
+          }
+
+          return (
+            <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, gap: 14, marginTop: -12 }}>
+
+              {/* Year */}
+              <View>
+                <Text style={{ ...L, marginBottom: 10 }}>YEAR</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <Pressable onPress={() => updateDate(year - 1, month, day)} style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}>
+                    <ChevronLeft size={16} color={T.text.secondary} />
+                  </Pressable>
+                  <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{year}</Text>
+                  <Pressable
+                    onPress={() => { if (year < today.getFullYear()) updateDate(year + 1, month, day); }}
+                    style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <ChevronRight size={16} color={year >= today.getFullYear() ? T.text.muted : T.text.secondary} />
+                  </Pressable>
+                </View>
+              </View>
+
+              {/* Month */}
+              <View>
+                <Text style={{ ...L, marginBottom: 10 }}>MONTH</Text>
+                <View style={{ gap: 5 }}>
+                  {[MONTHS_SHORT.slice(0, 6), MONTHS_SHORT.slice(6)].map((row, rowIdx) => (
+                    <View key={rowIdx} style={{ flexDirection: 'row', gap: 5 }}>
+                      {row.map((m, i) => {
+                        const mIdx = rowIdx * 6 + i + 1;
+                        const isFuture = year === today.getFullYear() && mIdx > today.getMonth() + 1;
+                        const active = month === mIdx;
+                        return (
+                          <Pressable key={m} onPress={() => { if (!isFuture) updateDate(year, mIdx, day); }} style={{ flex: 1, paddingVertical: 13, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}>
+                            <Text style={{ color: isFuture ? T.text.muted : (active ? T.text.primary : T.text.secondary), fontSize: 14, fontFamily: 'SpaceMono-Regular' }}>{m}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Day */}
+              <View>
+                <Text style={{ ...L, marginBottom: 10 }}>DAY</Text>
+                <View style={{ gap: 5 }}>
+                  {dayRows.map((row, rowIdx) => (
+                    <View key={rowIdx} style={{ flexDirection: 'row', gap: 5 }}>
+                      {row.map((d) => {
+                        if (d > daysInMonth) return <View key={d} style={{ flex: 1 }} />;
+                        const isFuture = year === today.getFullYear() && month === today.getMonth() + 1 && d > today.getDate();
+                        const active = day === d;
+                        return (
+                          <Pressable key={d} onPress={() => { if (!isFuture) updateDate(year, month, d); }} style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}>
+                            <Text style={{ color: isFuture ? T.text.muted : (active ? T.text.primary : T.text.secondary), fontSize: 12, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+            </View>
+          );
+        })()}
 
         {/* Type toggle */}
         <View>
@@ -309,6 +377,18 @@ export default function AddScreen() {
               {hasExpiry && (
                 <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, gap: 14 }}>
                   <View>
+                    <Text style={{ ...L, marginBottom: 10 }}>YEAR</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <Pressable onPress={() => recurringForm.setValue("expiryYear", Math.max(currentYear, expiryYear - 1))} style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}>
+                        <ChevronLeft size={16} color={T.text.secondary} />
+                      </Pressable>
+                      <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{expiryYear}</Text>
+                      <Pressable onPress={() => recurringForm.setValue("expiryYear", expiryYear + 1)} style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}>
+                        <ChevronRight size={16} color={T.text.secondary} />
+                      </Pressable>
+                    </View>
+                  </View>
+                  <View>
                     <Text style={{ ...L, marginBottom: 10 }}>MONTH</Text>
                     <View style={{ gap: 5 }}>
                       {[MONTHS_SHORT.slice(0, 6), MONTHS_SHORT.slice(6)].map((row, rowIdx) => (
@@ -324,18 +404,6 @@ export default function AddScreen() {
                           })}
                         </View>
                       ))}
-                    </View>
-                  </View>
-                  <View>
-                    <Text style={{ ...L, marginBottom: 10 }}>YEAR</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <Pressable onPress={() => recurringForm.setValue("expiryYear", Math.max(currentYear, expiryYear - 1))} style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}>
-                        <ChevronLeft size={16} color={T.text.secondary} />
-                      </Pressable>
-                      <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{expiryYear}</Text>
-                      <Pressable onPress={() => recurringForm.setValue("expiryYear", expiryYear + 1)} style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}>
-                        <ChevronRight size={16} color={T.text.secondary} />
-                      </Pressable>
                     </View>
                   </View>
                 </View>

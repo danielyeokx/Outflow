@@ -7,7 +7,7 @@ Move completed items to `task-archive.md`. Keep this file short and actionable.
 ## Critical
 
 - [x] **Sheet + keyboard bug** — sheet slides off screen when keyboard opens on physical device. `KeyboardAvoidingView` with `behavior="padding"` doesn't work with `transparentModal` on iOS 18/26. Fix: try `behavior="position"` or replace Sheet with `@gorhom/bottom-sheet`.
-- [ ] **Bottom sheet swipe-to-dismiss** — sheets without internal scrollable content should respond to swipe-down gesture and close; currently only the overlay tap dismisses them
+- [ ] **Bottom sheet swipe-to-dismiss** — sheets without internal scrollable content should respond to swipe-down gesture and close; currently only the overlay tap dismisses them. Quick fix: PanResponder on a drag handle. Proper fix: replace Sheet with `@gorhom/bottom-sheet` (handles swipe-to-dismiss natively, dynamic height snap points, removes content overflow issues — requires refactoring all screens using Sheet)
 - [ ] **Nav bar text clipping** — tab bar labels clipped at screen edges on iPhone's rounded corners; increase nav bar height so text sits higher and clears the home bar + rounded edges
 
 ---

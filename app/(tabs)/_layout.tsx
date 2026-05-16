@@ -1,5 +1,6 @@
 import { Tabs, router } from "expo-router";
 import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LayoutDashboard, List, Plus, RefreshCw, Settings } from "lucide-react-native";
 import { T } from "../../lib/theme";
 
@@ -28,6 +29,9 @@ function CenterAddButton() {
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 52 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
@@ -36,8 +40,9 @@ export default function TabLayout() {
           backgroundColor: '#0A0A0A',
           borderTopColor: '#2A2A2A',
           borderTopWidth: 1,
-          paddingBottom: 8,
-          height: 64,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom,
+          paddingTop: 8,
         },
         tabBarActiveTintColor: '#FFFFFF',
         tabBarInactiveTintColor: '#444444',

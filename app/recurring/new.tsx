@@ -251,6 +251,26 @@ export default function NewRecurringScreen() {
 
             {hasExpiry && (
               <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, gap: 14 }}>
+                {/* Year stepper */}
+                <View>
+                  <Text style={{ ...labelStyle, marginBottom: 10 }}>YEAR</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Pressable
+                      onPress={() => setValue("expiryYear", Math.max(currentYear, expiryYear - 1))}
+                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <ChevronLeft size={16} color={T.text.secondary} />
+                    </Pressable>
+                    <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{expiryYear}</Text>
+                    <Pressable
+                      onPress={() => setValue("expiryYear", expiryYear + 1)}
+                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <ChevronRight size={16} color={T.text.secondary} />
+                    </Pressable>
+                  </View>
+                </View>
+
                 {/* Month picker */}
                 <View>
                   <Text style={{ ...labelStyle, marginBottom: 10 }}>MONTH</Text>
@@ -272,26 +292,6 @@ export default function NewRecurringScreen() {
                         })}
                       </View>
                     ))}
-                  </View>
-                </View>
-
-                {/* Year stepper */}
-                <View>
-                  <Text style={{ ...labelStyle, marginBottom: 10 }}>YEAR</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <Pressable
-                      onPress={() => setValue("expiryYear", Math.max(currentYear, expiryYear - 1))}
-                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <ChevronLeft size={16} color={T.text.secondary} />
-                    </Pressable>
-                    <Text style={{ color: T.text.primary, fontSize: 18, fontFamily: 'SpaceMono-Regular', flex: 1, textAlign: 'center' }}>{expiryYear}</Text>
-                    <Pressable
-                      onPress={() => setValue("expiryYear", expiryYear + 1)}
-                      style={{ width: 36, height: 36, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <ChevronRight size={16} color={T.text.secondary} />
-                    </Pressable>
                   </View>
                 </View>
               </View>
