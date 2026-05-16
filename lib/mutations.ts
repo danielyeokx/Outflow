@@ -3,7 +3,7 @@ import { db } from "./db";
 import { expenses, learnedKeywords, categories, recurringExpenses } from "./schema";
 import { RecurringFormValues } from "./schema";
 import { getDaysInMonth } from "date-fns";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
@@ -131,6 +131,42 @@ export function useAddCategory() {
         createdAt: new Date().toISOString(),
       });
       return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useRenameCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      await db.update(categories).set({ name }).where(eq(categories.id, id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const [{ cnt: expCount }] = await db
+        .select({ cnt: sql<number>`count(*)` })
+        .from(expenses)
+        .where(eq(expenses.categoryId, id));
+      const [{ cnt: recCount }] = await db
+        .select({ cnt: sql<number>`count(*)` })
+        .from(recurringExpenses)
+        .where(eq(recurringExpenses.categoryId, id));
+      if (expCount > 0 || recCount > 0) {
+        throw new Error("CATEGORY_IN_USE");
+      }
+      await db.delete(learnedKeywords).where(eq(learnedKeywords.categoryId, id));
+      await db.delete(categories).where(eq(categories.id, id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });

@@ -6,7 +6,7 @@ Move completed items to `task-archive.md`. Keep this file short and actionable.
 
 ## Backlog
 
-- [ ] **Settings "+new" touch target** — increase touch target size of the "+new" button for adding categories in the settings page
+- [x] **Settings "+new" touch target** — increase touch target size of the "+new" button for adding categories in the settings page
 - [ ] **Category edit + delete** — settings currently only supports add + keyword management. Add rename and delete (with FK constraint check — can't delete if expenses exist).
 - [ ] **Recurring expense edit** — currently delete + recreate only. Add edit flow.
 - [ ] **Expense edit** — tap an expense in the list to edit amount, category, date.

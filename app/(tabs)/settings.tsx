@@ -51,7 +51,7 @@ export default function SettingsScreen() {
           </Text>
           <Pressable
             onPress={() => router.push('/category/new')}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, backgroundColor: T.surface }}
           >
             <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>+ NEW</Text>
           </Pressable>
