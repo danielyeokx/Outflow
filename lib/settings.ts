@@ -4,9 +4,10 @@ const SETTINGS_PATH = FileSystem.documentDirectory + 'settings.json';
 
 export type AppSettings = {
   defaultCurrency: string;
+  staticKeywordsEnabled: boolean;
 };
 
-const DEFAULTS: AppSettings = { defaultCurrency: 'SGD' };
+const DEFAULTS: AppSettings = { defaultCurrency: 'SGD', staticKeywordsEnabled: true };
 
 export async function readSettings(): Promise<AppSettings> {
   try {

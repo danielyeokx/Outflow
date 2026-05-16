@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight, ChevronDown, Download, Trash2 } from "lucide-react-native";
 import { useCategories, useDefaultCurrency } from "../../lib/queries";
-import { useSetDefaultCurrency, useClearAllData, exportExpensesCSV } from "../../lib/mutations";
+import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, exportExpensesCSV } from "../../lib/mutations";
 import { T, toGray } from "../../lib/theme";
 import { CURRENCIES } from "../../lib/rates";
 import DotGrid from "../../components/DotGrid";
@@ -49,6 +49,8 @@ export default function SettingsScreen() {
   const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
   const { mutate: setCurrency } = useSetDefaultCurrency();
   const { mutate: clearAllData, isPending: clearing } = useClearAllData();
+  const { mutate: clearKeywords, isPending: clearingKeywords } = useClearAllKeywords();
+  const { mutate: resetCategories, isPending: resettingCategories } = useResetCategories();
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -60,6 +62,42 @@ export default function SettingsScreen() {
         Alert.alert("Export failed", e?.message ?? "Could not export data.");
       })
       .finally(() => setExporting(false));
+  }
+
+  function handleClearKeywords() {
+    Alert.alert(
+      "Clear all keywords?",
+      "Removes all keyword→category associations, including built-in ones. Auto-categorisation will stop working until keywords are re-added. Categories and expenses are unaffected.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear Keywords", style: "destructive",
+          onPress: () =>
+            Alert.alert("Are you sure?", "This cannot be undone.", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Yes, clear all", style: "destructive", onPress: () => clearKeywords() },
+            ]),
+        },
+      ]
+    );
+  }
+
+  function handleResetCategories() {
+    Alert.alert(
+      "Reset categories?",
+      "Restores the 8 default categories (names and icons reset), removes unused custom categories, and clears all learned keywords. Custom categories with existing expenses are kept.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset", style: "destructive",
+          onPress: () =>
+            Alert.alert("Are you sure?", "This cannot be undone.", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Yes, reset", style: "destructive", onPress: () => resetCategories() },
+            ]),
+        },
+      ]
+    );
   }
 
   function handleClearAll() {
@@ -151,12 +189,12 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Data */}
+        {/* Data — export */}
         <View>
           <SectionLabel label="// DATA" />
           <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
             {/* Export */}
-            <Pressable onPress={handleExport} disabled={exporting} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
+            <Pressable onPress={handleExport} disabled={exporting}>
               {({ pressed }) => (
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: exporting ? 0.5 : 1 }}>
                   {exporting
@@ -168,7 +206,34 @@ export default function SettingsScreen() {
                 </View>
               )}
             </Pressable>
-            {/* Clear */}
+          </View>
+          {/* Destructive actions — separate card */}
+          <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, marginTop: 12 }}>
+            {/* Clear keywords */}
+            <Pressable onPress={handleClearKeywords} disabled={clearingKeywords} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
+              {({ pressed }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: clearingKeywords ? 0.5 : 1 }}>
+                  {clearingKeywords
+                    ? <ActivityIndicator size="small" color="#666" style={{ marginRight: 12 }} />
+                    : <Trash2 size={15} color="#666" style={{ marginRight: 12 }} />
+                  }
+                  <Text style={{ color: '#666', fontSize: 13, flex: 1 }}>Clear All Keywords</Text>
+                </View>
+              )}
+            </Pressable>
+            {/* Reset categories */}
+            <Pressable onPress={handleResetCategories} disabled={resettingCategories} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
+              {({ pressed }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: resettingCategories ? 0.5 : 1 }}>
+                  {resettingCategories
+                    ? <ActivityIndicator size="small" color="#666" style={{ marginRight: 12 }} />
+                    : <Trash2 size={15} color="#666" style={{ marginRight: 12 }} />
+                  }
+                  <Text style={{ color: '#666', fontSize: 13, flex: 1 }}>Reset Categories to Defaults</Text>
+                </View>
+              )}
+            </Pressable>
+            {/* Clear all */}
             <Pressable onPress={handleClearAll} disabled={clearing}>
               {({ pressed }) => (
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: clearing ? 0.5 : 1 }}>

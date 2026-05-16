@@ -4,6 +4,18 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-16 (session 5)
+
+[FEATURE] Expense edit — tap expense row body in list to open pre-populated edit sheet (`app/expense/[id].tsx`); transparentModal Sheet; fields: amount, item name, category, date, currency; trash icon in header triggers delete-with-confirm; `[ SAVE ]` sticky button
+[FEATURE] `useExpense(id)` query in `lib/queries.ts` — fetches single expense by ID
+[FEATURE] `useUpdateExpense` mutation in `lib/mutations.ts` — UPDATE with full cache invalidation + refetchQueries for monthly-summary
+[FIX] Overview total not refreshing after any expense mutation — `useAddExpense` + `useDeleteExpense` never invalidated `["monthly-summary"]`; switched to `refetchQueries` for forced refetch; added `useFocusEffect` on Overview tab to refetch `monthly-summary` + `daily-totals` on tab focus
+[UI] `ExpenseListItem` — row body is now a tappable Pressable (→ edit); trash icon remains separate; press state dims text + lightens icon bg
+[UI] Overview empty state — `[ NO DATA ]` header + `NO EXPENSES LOGGED FOR THIS MONTH.` subtitle + `+ LOG EXPENSE` button that opens add modal
+[FEATURE] Zero-decimal currency support (JPY, KRW) — `decimals` field on each CURRENCIES entry; `getCurrencyDecimals(code)` helper in rates.ts; `formatCurrency` divides by `10^decimals`; `convertCurrency` applies `10^(toDecimals−fromDecimals)` scale factor for cross-decimal conversions; amount input skips decimal for 0-decimal currencies; digit slice raised to 9 digits (max ₩999,999,999)
+[INFRA] Bar chart bottom padding — confirmed already fixed (paddingBottom: 56 workaround); marked done
+[INFRA] Recurring tab + button context — decided to keep + defaulting to SINGLE (99% of use); marked done
+
 ## 2026-05-16 (session 4)
 
 [FEATURE] Recurring expense edit — tap row navigates to `app/recurring/[id].tsx` (transparentModal Sheet); form pre-populated from stored data; UPDATE + delete (Alert confirm); currency chip on amount field

@@ -10,6 +10,7 @@ import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
 import { writeSettings, readSettings } from "./settings";
+import { DEFAULT_CATEGORIES } from "./seeds";
 
 const CATEGORY_GRAYS = [
   '#CCCCCC', '#AAAAAA', '#888888', '#EEEEEE',
@@ -295,6 +296,70 @@ export function useSetDefaultCurrency() {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       queryClient.invalidateQueries({ queryKey: ["monthly-summary"] });
       queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+    },
+  });
+}
+
+export function useClearAllKeywords() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await db.delete(learnedKeywords);
+      await writeSettings({ staticKeywordsEnabled: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+      queryClient.invalidateQueries({ queryKey: ["keywords"] });
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+}
+
+export function useResetCategories() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      // Clear all learned keywords
+      await db.delete(learnedKeywords);
+
+      // Delete user-created categories that have no expenses or recurring entries
+      const userCats = await db
+        .select({ id: categories.id })
+        .from(categories)
+        .where(eq(categories.isDefault, false));
+
+      for (const cat of userCats) {
+        const [{ cnt: expCount }] = await db
+          .select({ cnt: sql<number>`count(*)` })
+          .from(expenses)
+          .where(eq(expenses.categoryId, cat.id));
+        const [{ cnt: recCount }] = await db
+          .select({ cnt: sql<number>`count(*)` })
+          .from(recurringExpenses)
+          .where(eq(recurringExpenses.categoryId, cat.id));
+        if (expCount === 0 && recCount === 0) {
+          await db.delete(categories).where(eq(categories.id, cat.id));
+        }
+      }
+
+      // Re-seed defaults — restores names/icons/colors even if renamed
+      for (const cat of DEFAULT_CATEGORIES) {
+        await db
+          .insert(categories)
+          .values(cat)
+          .onConflictDoUpdate({
+            target: categories.id,
+            set: { name: cat.name, color: cat.color, icon: cat.icon, sortOrder: cat.sortOrder },
+          });
+      }
+      // Re-enable static keywords
+      await writeSettings({ staticKeywordsEnabled: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+      queryClient.invalidateQueries({ queryKey: ["keywords"] });
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
   });
 }

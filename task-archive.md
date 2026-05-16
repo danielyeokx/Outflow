@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-05-16 (session 5)
+
+- [x] **Expense edit** — tap expense row body to open pre-populated edit sheet; full CRUD on amount, item name, category, date, currency
+- [x] **Overview polish** — empty state: [ NO DATA ] header + subtitle + [ + LOG EXPENSE ] button
+- [x] **Bar chart bottom padding** — confirmed already resolved (paddingBottom: 56); no code change needed
+- [x] **Recurring tab + button context** — decided by design: + always defaults to SINGLE; no code change needed
+- [x] **Export to CSV or PDF** — done via expo-sharing; CSV with date/item/category/amount/currency/note columns
+- [x] **Multi-currency support with conversion** — done; hardcoded rates in lib/rates.ts; JPY/KRW zero-decimal support added session 5
+
 ## 2026-05-16 (session 4)
 
 - [x] **Recurring expense edit** — tap row opens edit sheet (transparentModal); pre-populated form; UPDATE + delete; item name→category auto-suggest; day-of-month local string state fix; currency chip

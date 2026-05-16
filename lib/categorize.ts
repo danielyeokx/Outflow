@@ -1,4 +1,4 @@
-const KEYWORD_MAP: Record<string, string> = {
+export const KEYWORD_MAP: Record<string, string> = {
   // Food & Drinks
   starbucks: "00000000-0000-0000-0000-000000000001",
   mcdonalds: "00000000-0000-0000-0000-000000000001",
@@ -105,10 +105,10 @@ export function suggestCategoryId(
 ): string | null {
   const lower = normaliseKeyword(itemName);
   if (!lower) return null;
-  // Learned keywords take priority — exact match on normalised name
+  // learnedMap already includes static keywords (merged by useLearnedKeywords when enabled)
+  // Exact match first, then substring
   if (learnedMap[lower]) return learnedMap[lower];
-  // Static keyword map — substring match
-  for (const [keyword, categoryId] of Object.entries(KEYWORD_MAP)) {
+  for (const [keyword, categoryId] of Object.entries(learnedMap)) {
     if (lower.includes(keyword)) return categoryId;
   }
   return null;

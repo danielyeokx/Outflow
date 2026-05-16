@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { ChevronLeft, Trash2, Plus, Save } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
-import { useCategories, useKeywordsForCategory } from "../../lib/queries";
+import { useCategories, useKeywordsForCategory, useStaticKeywordsEnabled } from "../../lib/queries";
 import { useAddKeyword, useDeleteKeyword, useRenameCategory, useDeleteCategory } from "../../lib/mutations";
 import { getStaticKeywordsForCategory } from "../../lib/categorize";
 import { T, toGray } from "../../lib/theme";
@@ -19,6 +19,7 @@ export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: cats = [] } = useCategories();
   const { data: userKeywords = [], isLoading } = useKeywordsForCategory(id);
+  const { data: staticEnabled = true } = useStaticKeywordsEnabled();
   const { mutate: addKeyword, isPending: adding } = useAddKeyword();
   const { mutate: deleteKeyword } = useDeleteKeyword();
   const [newKw, setNewKw] = useState("");
@@ -37,7 +38,7 @@ export default function CategoryDetailScreen() {
   if (!category) return null;
 
   const gray = toGray(category.color);
-  const staticKws = getStaticKeywordsForCategory(id);
+  const staticKws = staticEnabled ? getStaticKeywordsForCategory(id) : [];
   const IconComponent = (Icons[category.icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
 
   function handleRename() {

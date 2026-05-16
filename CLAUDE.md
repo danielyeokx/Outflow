@@ -39,6 +39,8 @@ app/
   recurring/
     new.tsx         # New recurring modal (Sheet) — legacy, use /add instead
     [id].tsx        # Edit recurring modal (Sheet) — pre-populated form, UPDATE + delete
+  expense/
+    [id].tsx        # Edit expense modal (Sheet) — pre-populated form, UPDATE + delete
   _layout.tsx       # Root layout: QueryClient, DB migration, recurring engine
   add.tsx           # Unified add modal (single + recurring toggle)
   +not-found.tsx
@@ -119,7 +121,9 @@ drizzle/
 - **Square action buttons**: set `width: 44` on the button and `height: 44` on the sibling TextInput — flex row stretch makes the button match input height, giving a natural square
 - **In-app confirmation modals**: use RN `Modal` with `transparent` + `animationType="fade"`, `rgba(0,0,0,0.85)` overlay, centered floating panel (`T.surface` bg + `T.border` border). Outer Pressable dismisses on backdrop tap; inner Pressable swallows touches
 - **Currency chip on amount inputs**: `flexDirection: 'row', alignItems: 'stretch', gap: 8` parent; TextInput has `flex: 1`; currency button has `aspectRatio: 1` — height stretches to match input, width = height automatically
-- **Multi-currency**: amounts stored in cents with currency code per-expense. `convertCurrency(cents, from, to)` in `lib/rates.ts` for chart aggregation. `formatCurrency(cents, currency)` for display — always pass the stored currency, never assume SGD
+- **Multi-currency**: amounts stored in minor units with currency code per-expense. `convertCurrency(minor, from, to)` in `lib/rates.ts` for chart aggregation — accounts for 0-decimal currencies (JPY, KRW) via scale factor. `formatCurrency(minor, currency)` for display — always pass the stored currency, never assume SGD. `getCurrencyDecimals(code)` returns 0 or 2
+- **Zero-decimal currencies (JPY, KRW)**: `amountCents` column stores whole units (¥1500 = 1500, not 150000). Amount input skips decimal insertion; digit limit is 9 (not 7). `formatCurrency` divides by `10^decimals` so display is correct
+- **Overview tab refetch**: uses `useFocusEffect` to call `refetch()` on `monthly-summary` + `daily-totals` every time the tab gains focus — ensures totals are always fresh after edits/adds. All expense mutations also call `refetchQueries(["monthly-summary"])`
 - **Settings persistence**: `lib/settings.ts` reads/writes `{documentDirectory}/settings.json` via `expo-file-system/legacy`. Use `useDefaultCurrency()` query + `useSetDefaultCurrency()` mutation; invalidates `["settings"]`, `["monthly-summary"]`, `["daily-totals"]`
 - **expo-file-system**: must import from `expo-file-system/legacy` in SDK 54 — the top-level import throws deprecation errors at runtime
 

@@ -5,6 +5,7 @@ import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { monthBounds } from "./format";
 import { readSettings } from "./settings";
 import { convertCurrency } from "./rates";
+import { KEYWORD_MAP } from "./categorize";
 
 export function useCategories() {
   return useQuery({
@@ -188,8 +189,19 @@ export function useLearnedKeywords() {
   return useQuery({
     queryKey: ["learned-keywords"],
     queryFn: async () => {
+      const { staticKeywordsEnabled } = await readSettings();
       const rows = await db.select().from(learnedKeywords);
-      return Object.fromEntries(rows.map((r) => [r.keyword, r.categoryId]));
+      const dbMap = Object.fromEntries(rows.map((r) => [r.keyword, r.categoryId]));
+      // Merge static map when enabled — DB entries take priority (user overrides static)
+      return staticKeywordsEnabled ? { ...KEYWORD_MAP, ...dbMap } : dbMap;
     },
+  });
+}
+
+export function useStaticKeywordsEnabled() {
+  return useQuery({
+    queryKey: ["settings", "staticKeywordsEnabled"],
+    queryFn: async () => (await readSettings()).staticKeywordsEnabled,
+    staleTime: Infinity,
   });
 }
