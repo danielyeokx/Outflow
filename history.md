@@ -4,6 +4,26 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-16 (session 2)
+
+[FEATURE] Custom inline date picker — year stepper + month grid + day grid (7/row), replaces native DateTimePicker; displays as "16 MAY 2026"
+[UI] Category + date fields side by side in single expense form to reduce sheet overflow
+[UI] Auto-scroll to date picker card when opened via KeyboardAwareScrollView.scrollToPosition
+[UI] Sheet swipe-to-dismiss — PanResponder drag handle, overlay fades with translateY interpolation, absoluteFillObject overlay prevents edge ghosting
+[UI] Expires-until picker: year now above month in both add.tsx and recurring/new.tsx
+[UI] Expiry month grid: two equal rows of 6 filling full card width (flex:1 per button)
+[UI] Tab bar height uses useSafeAreaInsets — labels clear rounded corners and home bar on iPhone 16 Pro
+[UI] All form field sizes unified: amount + item name at fontSize 26, all secondary inputs/buttons at fontSize 14 + paddingVertical 13
+[UI] Base input style gains SpaceMono-Regular; all placeholders uppercased for consistency
+[UI] Day-of-month default changed from pre-filled "1" to blank (matches amount entry)
+[UI] Calendar icon added to date trigger field
+[UI] Year before month ordering in expires-until card
+[FIX] Sheet keyboard bug — removed KeyboardAvoidingView, added react-native-keyboard-aware-scroll-view with extraScrollHeight=24
+[FIX] Overlay ghost on sheet dismiss — overlay now absoluteFillObject, fades independently of sheet
+[REMOVED] @react-native-community/datetimepicker — replaced by custom picker
+
+---
+
 ## 2026-05-16
 
 [INFRA] Created CLAUDE.md, history.md, task.md, task-archive.md project docs

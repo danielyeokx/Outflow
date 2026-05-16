@@ -4,6 +4,9 @@
 
 ## 2026-05-16
 
+- [x] **Nav bar text clipping** — useSafeAreaInsets drives tab bar height; labels clear rounded corners + home bar on iPhone 16 Pro
+- [x] **Bottom sheet swipe-to-dismiss** — PanResponder drag handle; overlay fades via translateY interpolation; absoluteFillObject prevents edge ghosting on fast swipe
+- [x] **Date picker** — custom inline year/month/day grid picker; displays "16 MAY 2026"; auto-scrolls into view on open; future dates disabled
 - [x] **Text consistency: item name field** — added SpaceMono-Regular to base input style in theme.ts; uppercased all sentence-case placeholders across add.tsx, category/[id].tsx, recurring/new.tsx
 - [x] **Sheet + keyboard bug** — replaced KeyboardAvoidingView with react-native-keyboard-aware-scroll-view; extraScrollHeight={24} gives gap between focused input and keyboard
 - [x] **Day-of-month number entry** — changed default from pre-filled "1" to blank; onChangeText now resets to undefined on clear; matches amount entry behaviour

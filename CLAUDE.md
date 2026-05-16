@@ -97,8 +97,10 @@ drizzle/
 - SVG dot grid (`DotGrid`) overlays every screen — `pointerEvents="none"`
 - Section labels style: `// CATEGORY.NAME` or `SYS.CONTEXT`
 - All amounts stored in **cents** (integer), displayed via `formatCurrency()`
-- Modals use `transparentModal` presentation + `Sheet` component (80% height, tap top 20% to dismiss)
+- Modals use `transparentModal` presentation + `Sheet` component (80% height, tap overlay or swipe drag handle to dismiss)
+- Sheet has a drag handle at top with PanResponder swipe-to-dismiss; overlay fades via translateY interpolation
 - Sticky confirm/create buttons sit outside ScrollView inside Sheet
+- Form ScrollViews inside Sheet use `KeyboardAwareScrollView` from `react-native-keyboard-aware-scroll-view` with `extraScrollHeight={24}`
 
 ## Key conventions
 - All inline styles (not className) — NativeWind applied only to SafeAreaView backgrounds as backup
@@ -109,9 +111,9 @@ drizzle/
 - Modals registered as `presentation: "transparentModal"`
 
 ## Known issues
-- **Sheet + keyboard on physical device**: when a text input inside a Sheet is focused, the keyboard pushes the entire sheet off screen. `KeyboardAvoidingView` with `behavior="padding"` on `transparentModal` doesn't work correctly on iOS 18/26. Fix: use `behavior="position"` or replace with a proper bottom sheet library (@gorhom/bottom-sheet).
 - **NativeWind className on RN components**: not all className styles apply reliably — use inline `style` prop as source of truth, className as enhancement only.
 - **Expo Go web target**: broken — expo-sqlite uses WASM on web which Metro can't bundle. Web is not a target platform.
+- **Sheet swipe-to-dismiss with scroll content**: PanResponder drag handle works for all sheets but full swipe-anywhere-to-dismiss is not implemented. Consider @gorhom/bottom-sheet for a proper solution (tracked in task.md).
 
 ## Dev workflow
 ```bash
