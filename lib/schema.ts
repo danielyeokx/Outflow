@@ -59,6 +59,7 @@ export type RecurringExpense = typeof recurringExpenses.$inferSelect;
 export const recurringFormSchema = z.object({
   itemName:     z.string().min(1, "Item name is required").max(100),
   amountCents:  z.number().int().min(1, "Amount must be greater than 0"),
+  currency:     z.string().optional(),
   categoryId:   z.string().min(1, "Select a category"),
   frequency:    z.enum(["monthly", "weekly", "yearly", "custom"]),
   dayOfMonth:   z.number().int().min(1).max(31).optional(),
@@ -75,6 +76,7 @@ export type RecurringFormValues = z.infer<typeof recurringFormSchema>;
 
 export const expenseFormSchema = z.object({
   amountCents: z.number().int().min(1, "Amount must be greater than 0"),
+  currency: z.string().optional(),
   itemName: z.string().min(1, "Item name is required").max(100),
   categoryId: z.string().min(1, "Select a category"),
   spentAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),

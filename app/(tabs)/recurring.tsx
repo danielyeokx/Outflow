@@ -1,9 +1,9 @@
-import { View, Text, Pressable, ScrollView, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RefreshCw, Trash2 } from "lucide-react-native";
+import { RefreshCw, ChevronRight } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
+import { router } from "expo-router";
 import { useRecurring } from "../../lib/queries";
-import { useDeleteRecurring } from "../../lib/mutations";
 import { formatCurrency } from "../../lib/format";
 import { frequencyLabel, getNextDueDate } from "../../lib/recurring";
 import { T, toGray } from "../../lib/theme";
@@ -14,14 +14,6 @@ type IconName = keyof typeof Icons;
 
 export default function RecurringScreen() {
   const { data: items = [] } = useRecurring();
-  const { mutate: deleteRecurring } = useDeleteRecurring();
-
-  function confirmDelete(id: string, name: string) {
-    Alert.alert("Delete recurring?", `"${name}" will stop auto-logging.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteRecurring(id) },
-    ]);
-  }
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>
@@ -47,37 +39,33 @@ export default function RecurringScreen() {
               const nextDue = getNextDueDate(item);
 
               return (
-                <View
+                <Pressable
                   key={item.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 14,
-                    paddingVertical: 14,
-                    borderTopWidth: index === 0 ? 0 : 1,
-                    borderTopColor: T.border,
-                  }}
+                  onPress={() => router.push(`/recurring/${item.id}`)}
+                  style={{ borderTopWidth: index === 0 ? 0 : 1, borderTopColor: T.border }}
                 >
-                  <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                    <IC size={15} color={gray} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: T.text.primary, fontSize: 13 }} numberOfLines={1}>{item.itemName}</Text>
-                    <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>{frequencyLabel(item)}</Text>
-                    {nextDue && (
-                      <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 1 }}>{`NEXT · ${nextDue}`}</Text>
-                    )}
-                    {item.endDate && (
-                      <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 1 }}>{`UNTIL · ${item.endDate.slice(0, 7)}`}</Text>
-                    )}
-                  </View>
-                  <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginRight: 12 }}>
-                    {formatCurrency(item.amountCents)}
-                  </Text>
-                  <Pressable onPress={() => confirmDelete(item.id, item.itemName)} hitSlop={8}>
-                    <Trash2 size={14} color={T.text.muted} />
-                  </Pressable>
-                </View>
+                  {({ pressed }) => (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, opacity: pressed ? 0.6 : 1 }}>
+                      <View style={{ width: 32, height: 32, borderRadius: T.radius, borderWidth: 1, borderColor: T.border, backgroundColor: T.elevated, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                        <IC size={15} color={gray} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: T.text.primary, fontSize: 13 }} numberOfLines={1}>{item.itemName}</Text>
+                        <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>{frequencyLabel(item)}</Text>
+                        {nextDue && (
+                          <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 1 }}>{`NEXT · ${nextDue}`}</Text>
+                        )}
+                        {item.endDate && (
+                          <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 1 }}>{`UNTIL · ${item.endDate.slice(0, 7)}`}</Text>
+                        )}
+                      </View>
+                      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginRight: 8 }}>
+                        {formatCurrency(item.amountCents, item.currency)}
+                      </Text>
+                      <ChevronRight size={14} color={T.text.muted} />
+                    </View>
+                  )}
+                </Pressable>
               );
             })}
           </View>

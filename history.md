@@ -4,6 +4,18 @@ Format: newest first. Tags: [FEATURE] [UI] [BUG] [REMOVED] [INFRA] [FIX]
 
 ---
 
+## 2026-05-16 (session 3)
+
+[FEATURE] `useRenameCategory` mutation — updates `categories.name`, invalidates `["categories"]`
+[FEATURE] `useDeleteCategory` mutation — counts referencing expenses + recurring_expenses; throws `CATEGORY_IN_USE` if either > 0; cascade-deletes `learned_keywords` then the category
+[UI] Category detail screen: `// RENAME.CATEGORY` section — TextInput pre-filled with current name via `useEffect` on `category?.name`, white placeholder color, Save (floppy disk) icon button
+[UI] Category detail screen: unified `// KEYWORDS` list — static + user keywords merged, all rows have Trash2 delete icon; static keyword removals are session-local (hidden via state), user keyword removals persist to DB
+[UI] Category detail screen: `DELETE CATEGORY` full-width button — `T.elevated` (#181818) background, `T.text.secondary` (#888888) border, children render-prop pattern for press state
+[UI] Category detail screen: delete confirmation is a custom floating modal (not native Alert) — `rgba(0,0,0,0.85)` overlay, centered dialog panel with `T.surface` bg + border, CANCEL / DELETE side-by-side buttons
+[UI] Action buttons (Save icon, + icon): `width: 44`, height stretches to match TextInput (`height: 44` on inputs, flex row stretch on buttons)
+[UI] Settings `+NEW` button touch target enlarged: paddingVertical 5→11, paddingHorizontal 10→16
+[FIX] Renamed `handleDelete` → `handleDeleteKeyword` to avoid naming conflict with category delete handler
+
 ## 2026-05-16 (session 2)
 
 [FEATURE] Custom inline date picker — year stepper + month grid + day grid (7/row), replaces native DateTimePicker; displays as "16 MAY 2026"

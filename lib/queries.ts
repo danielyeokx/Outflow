@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { db } from "./db";
 import { expenses, categories, learnedKeywords, recurringExpenses } from "./schema";
-import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { monthBounds } from "./format";
+import { readSettings } from "./settings";
+import { convertCurrency } from "./rates";
 
 export function useCategories() {
   return useQuery({
@@ -49,24 +51,33 @@ export function useMonthlySummary(monthISO: string) {
   return useQuery({
     queryKey: ["monthly-summary", monthISO],
     queryFn: async () => {
+      const { defaultCurrency } = await readSettings();
       const rows = await db
         .select({
           categoryId: expenses.categoryId,
           categoryName: categories.name,
           categoryColor: categories.color,
           categoryIcon: categories.icon,
-          total: sql<number>`sum(${expenses.amountCents})`,
+          amountCents: expenses.amountCents,
+          currency: expenses.currency,
         })
         .from(expenses)
         .innerJoin(categories, eq(expenses.categoryId, categories.id))
-        .where(
-          and(gte(expenses.spentAt, start), lte(expenses.spentAt, end))
-        )
-        .groupBy(expenses.categoryId)
-        .orderBy(desc(sql`sum(${expenses.amountCents})`));
+        .where(and(gte(expenses.spentAt, start), lte(expenses.spentAt, end)));
 
-      const grandTotal = rows.reduce((acc, r) => acc + r.total, 0);
-      return { rows, grandTotal };
+      type CatRow = { categoryId: string; categoryName: string; categoryColor: string; categoryIcon: string; total: number };
+      const map = new Map<string, CatRow>();
+      for (const r of rows) {
+        const converted = convertCurrency(r.amountCents, r.currency, defaultCurrency);
+        if (!map.has(r.categoryId)) {
+          map.set(r.categoryId, { categoryId: r.categoryId, categoryName: r.categoryName, categoryColor: r.categoryColor, categoryIcon: r.categoryIcon, total: 0 });
+        }
+        map.get(r.categoryId)!.total += converted;
+      }
+
+      const result = Array.from(map.values()).sort((a, b) => b.total - a.total);
+      const grandTotal = result.reduce((acc, r) => acc + r.total, 0);
+      return { rows: result, grandTotal };
     },
   });
 }
@@ -75,18 +86,25 @@ export function useDailyTotals(monthISO: string) {
   const { start, end } = monthBounds(monthISO);
   return useQuery({
     queryKey: ["daily-totals", monthISO],
-    queryFn: () =>
-      db
+    queryFn: async () => {
+      const { defaultCurrency } = await readSettings();
+      const rows = await db
         .select({
           day: expenses.spentAt,
-          total: sql<number>`sum(${expenses.amountCents})`,
+          amountCents: expenses.amountCents,
+          currency: expenses.currency,
         })
         .from(expenses)
-        .where(
-          and(gte(expenses.spentAt, start), lte(expenses.spentAt, end))
-        )
-        .groupBy(expenses.spentAt)
-        .orderBy(expenses.spentAt),
+        .where(and(gte(expenses.spentAt, start), lte(expenses.spentAt, end)))
+        .orderBy(expenses.spentAt);
+
+      const map = new Map<string, number>();
+      for (const r of rows) {
+        const converted = convertCurrency(r.amountCents, r.currency, defaultCurrency);
+        map.set(r.day, (map.get(r.day) ?? 0) + converted);
+      }
+      return Array.from(map.entries()).map(([day, total]) => ({ day, total })).sort((a, b) => a.day.localeCompare(b.day));
+    },
   });
 }
 
@@ -136,6 +154,14 @@ export function useRecurring() {
 }
 
 export type RecurringWithCategory = NonNullable<ReturnType<typeof useRecurring>["data"]>[number];
+
+export function useDefaultCurrency() {
+  return useQuery({
+    queryKey: ["settings", "defaultCurrency"],
+    queryFn: async () => (await readSettings()).defaultCurrency,
+    staleTime: Infinity,
+  });
+}
 
 export function useLearnedKeywords() {
   return useQuery({

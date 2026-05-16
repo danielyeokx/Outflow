@@ -13,9 +13,10 @@ interface Row {
 interface Props {
   data: Row[];
   total: number;
+  currency: string;
 }
 
-export default function CategoryPieChart({ data, total }: Props) {
+export default function CategoryPieChart({ data, total, currency }: Props) {
   const pieData = data.map((row) => ({
     value: row.total,
     color: toGray(row.categoryColor),
@@ -36,7 +37,7 @@ export default function CategoryPieChart({ data, total }: Props) {
           <View style={{ alignItems: 'center' }}>
             <Text style={{ color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>TOTAL</Text>
             <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
-              {formatCurrency(total)}
+              {formatCurrency(total, currency)}
             </Text>
           </View>
         )}

@@ -32,7 +32,7 @@ app/
     settings.tsx    # Category management
     add-tab.tsx     # Placeholder for center + tab (never navigated to)
   category/
-    [id].tsx        # Category detail — keywords view + add/remove
+    [id].tsx        # Category detail — rename, delete, unified keyword list (static+user), delete confirmation modal
     new.tsx         # New category modal (Sheet)
   recurring/
     new.tsx         # New recurring modal (Sheet) — legacy, use /add instead
@@ -59,7 +59,7 @@ lib/
   categorize.ts     # Static keyword map + learned keyword lookup
   db.ts             # Drizzle client, migrations runner, recurring engine
   format.ts         # Currency (SGD), date formatters
-  mutations.ts      # All TanStack Mutations (add/delete expense, category, keyword, recurring)
+  mutations.ts      # All TanStack Mutations (add/delete/rename expense, category, keyword, recurring)
   queries.ts        # All TanStack Queries
   recurring.ts      # Due date computation engine (monthly/weekly/yearly/custom)
   schema.ts         # Drizzle table defs + Zod schemas
@@ -109,6 +109,10 @@ drizzle/
 - Drizzle migrations: after generating with `drizzle-kit generate`, inline the SQL into `drizzle/migrations.js` manually (Metro can't bundle .sql imports)
 - New screens added to root Stack in `app/_layout.tsx`
 - Modals registered as `presentation: "transparentModal"`
+- **Pressable button pattern**: use `children` render-prop (`{({ pressed }) => <View>...</View>}`) rather than `style={({ pressed }) => ...}` — more reliable press-state rendering
+- **Button backgrounds**: use `T.elevated` (#181818) as resting state for standalone buttons so they contrast against `T.bg` (#0A0A0A). `T.surface` (#111111) is too close to screen bg and looks like plain text
+- **Square action buttons**: set `width: 44` on the button and `height: 44` on the sibling TextInput — flex row stretch makes the button match input height, giving a natural square
+- **In-app confirmation modals**: use RN `Modal` with `transparent` + `animationType="fade"`, `rgba(0,0,0,0.85)` overlay, centered floating panel (`T.surface` bg + `T.border` border). Outer Pressable dismisses on backdrop tap; inner Pressable swallows touches
 
 ## Known issues
 - **NativeWind className on RN components**: not all className styles apply reliably — use inline `style` prop as source of truth, className as enhancement only.

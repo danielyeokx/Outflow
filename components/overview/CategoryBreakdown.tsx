@@ -13,9 +13,10 @@ interface Row {
 interface Props {
   rows: Row[];
   total: number;
+  currency: string;
 }
 
-export default function CategoryBreakdown({ rows, total }: Props) {
+export default function CategoryBreakdown({ rows, total, currency }: Props) {
   return (
     <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
       {rows.map((row, index) => {
@@ -39,7 +40,7 @@ export default function CategoryBreakdown({ rows, total }: Props) {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>{pct}%</Text>
                 <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular' }}>
-                  {formatCurrency(row.total)}
+                  {formatCurrency(row.total, currency)}
                 </Text>
               </View>
             </View>

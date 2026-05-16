@@ -3,7 +3,8 @@ import { Trash2 } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
 import { formatCurrency } from "../../lib/format";
 import { T, toGray } from "../../lib/theme";
-import { ExpenseWithCategory } from "../../lib/queries";
+import { ExpenseWithCategory, useDefaultCurrency } from "../../lib/queries";
+import { convertCurrency } from "../../lib/rates";
 
 type IconName = keyof typeof Icons;
 
@@ -15,6 +16,9 @@ interface Props {
 export default function ExpenseListItem({ expense, onDelete }: Props) {
   const IconComponent = (Icons[(expense.categoryIcon as IconName)] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
   const gray = toGray(expense.categoryColor);
+  const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
+  const showConversion = expense.currency !== defaultCurrency;
+  const convertedCents = showConversion ? convertCurrency(expense.amountCents, expense.currency, defaultCurrency) : 0;
 
   return (
     <View style={{
@@ -37,9 +41,16 @@ export default function ExpenseListItem({ expense, onDelete }: Props) {
           {expense.categoryName.toUpperCase()}
         </Text>
       </View>
-      <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular', marginRight: 12 }}>
-        {formatCurrency(expense.amountCents)}
-      </Text>
+      <View style={{ alignItems: 'flex-end', marginRight: 12 }}>
+        <Text style={{ color: T.text.primary, fontSize: 13, fontFamily: 'SpaceMono-Regular' }}>
+          {formatCurrency(expense.amountCents, expense.currency)}
+        </Text>
+        {showConversion && (
+          <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 2 }}>
+            ~{formatCurrency(convertedCents, defaultCurrency)}
+          </Text>
+        )}
+      </View>
       <Pressable onPress={onDelete} hitSlop={8}>
         <Trash2 size={14} color={T.text.muted} />
       </Pressable>

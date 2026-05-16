@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-05-16 (session 4)
+
+- [x] **Recurring expense edit** — tap row opens edit sheet (transparentModal); pre-populated form; UPDATE + delete; item name→category auto-suggest; day-of-month local string state fix
+
+## 2026-05-16 (session 3)
+
+- [x] **Settings "+new" touch target** — paddingVertical 5→11, paddingHorizontal 10→16
+- [x] **Category edit + delete** — rename (useRenameCategory) + delete (useDeleteCategory with FK check); full UI in category/[id].tsx
+
 ## 2026-05-16
 
 - [x] **Nav bar text clipping** — useSafeAreaInsets drives tab bar height; labels clear rounded corners + home bar on iPhone 16 Pro

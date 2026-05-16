@@ -11,10 +11,11 @@ import { X, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react-native"
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { expenseFormSchema, recurringFormSchema, ExpenseFormValues, RecurringFormValues } from "../lib/schema";
-import { useCategories, useLearnedKeywords } from "../lib/queries";
+import { useCategories, useLearnedKeywords, useDefaultCurrency } from "../lib/queries";
 import { useAddExpense, useAddRecurring } from "../lib/mutations";
 import { suggestCategoryId } from "../lib/categorize";
 import { todayISO } from "../lib/format";
+import { CURRENCIES } from "../lib/rates";
 import { T, input } from "../lib/theme";
 import Sheet from "../components/Sheet";
 import CategoryPicker from "../components/expense/CategoryPicker";
@@ -41,12 +42,16 @@ export default function AddScreen() {
   const insets = useSafeAreaInsets();
   const { data: categories = [] } = useCategories();
   const { data: learnedMap = {} } = useLearnedKeywords();
+  const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
   const { mutate: addExpense, isPending: pendingSingle } = useAddExpense();
   const { mutate: addRecurring, isPending: pendingRecurring } = useAddRecurring();
 
   const [type, setType] = useState<"single" | "recurring">("single");
   const [amountDigits, setAmountDigits] = useState("");
+  const [dayText, setDayText] = useState("");
   const [hasExpiry, setHasExpiry] = useState(false);
+  const [currency, setCurrencyState] = useState(defaultCurrency);
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const autoPickedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,6 +98,8 @@ export default function AddScreen() {
     autoPickedRef.current = false;
   }
 
+  useEffect(() => { setCurrencyState(defaultCurrency); }, [defaultCurrency]);
+
   useEffect(() => {
     if (!datePickerOpen) return;
     setTimeout(() => {
@@ -122,10 +129,12 @@ export default function AddScreen() {
 
   function onSubmit() {
     if (type === "single") {
+      singleForm.setValue("currency", currency);
       singleForm.handleSubmit((values) => {
         addExpense(values, { onSuccess: () => router.back(), onError: () => Alert.alert("Error", "Could not save expense.") });
       })();
     } else {
+      recurringForm.setValue("currency", currency);
       recurringForm.handleSubmit((values) => {
         const payload = hasExpiry ? values : { ...values, expiryMonth: undefined, expiryYear: undefined };
         addRecurring(payload, { onSuccess: () => router.back(), onError: () => Alert.alert("Error", "Could not save recurring.") });
@@ -152,13 +161,42 @@ export default function AddScreen() {
 
         {/* Amount */}
         <View>
-          <Text style={L}>AMOUNT.SGD</Text>
-          <TextInput
-            style={{ ...input, fontSize: 26, fontFamily: 'SpaceMono-Regular', borderColor: errors.amountCents ? '#666' : T.border }}
-            placeholder="> 0.00" placeholderTextColor={T.text.muted} keyboardType="number-pad"
-            value={amountDigits ? `> ${formatDigits(amountDigits)}` : ""}
-            onChangeText={(text) => { const d = text.replace(/\D/g, "").slice(-7); setAmountDigits(d); syncAmount(d); }}
-          />
+          <Text style={L}>AMOUNT</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'stretch', gap: 8 }}>
+            <TextInput
+              style={{ ...input, flex: 1, fontSize: 26, fontFamily: 'SpaceMono-Regular', borderColor: errors.amountCents ? '#666' : T.border }}
+              placeholder="> 0.00" placeholderTextColor={T.text.muted} keyboardType="number-pad"
+              value={amountDigits ? `> ${formatDigits(amountDigits)}` : ""}
+              onChangeText={(text) => { const d = text.replace(/\D/g, "").slice(-7); setAmountDigits(d); syncAmount(d); }}
+            />
+            <Pressable
+              onPress={() => setCurrencyPickerOpen((o) => !o)}
+              style={{ aspectRatio: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: T.elevated, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}
+            >
+              <Text style={{ color: T.text.secondary, fontSize: 11, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{currency}</Text>
+            </Pressable>
+          </View>
+          {currencyPickerOpen && (
+            <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, marginTop: 6, paddingVertical: 4 }}>
+              {CURRENCIES.map((c) => {
+                const active = currency === c.code;
+                return (
+                  <Pressable
+                    key={c.code}
+                    onPress={() => { setCurrencyState(c.code); setCurrencyPickerOpen(false); }}
+                  >
+                    {({ pressed }) => (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 12, backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent' }}>
+                        <Text style={{ color: T.text.primary, fontSize: 12, fontFamily: 'SpaceMono-Regular', width: 44 }}>{c.code}</Text>
+                        <Text style={{ color: T.text.muted, fontSize: 11, fontFamily: 'SpaceMono-Regular', flex: 1 }}>{c.label}</Text>
+                        {active && <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: T.text.secondary }} />}
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
           {errors.amountCents && <Text style={{ color: '#888', fontSize: 10, fontFamily: 'SpaceMono-Regular', marginTop: 4 }}>{errors.amountCents.message}</Text>}
         </View>
 
@@ -315,9 +353,18 @@ export default function AddScreen() {
             {(frequency === "monthly" || frequency === "yearly") && (
               <View>
                 <Text style={L}>DAY OF MONTH</Text>
-                <Controller control={recurringForm.control} name="dayOfMonth" render={({ field: { onChange, value } }) => (
-                  <TextInput style={{ ...input, fontFamily: 'SpaceMono-Regular' }} placeholder="1–31" placeholderTextColor={T.text.muted} keyboardType="number-pad" value={value?.toString() ?? ""} onChangeText={(t) => { if (!t) { onChange(undefined); return; } const n = parseInt(t, 10); if (!isNaN(n)) onChange(Math.min(31, Math.max(1, n))); }} />
-                )} />
+                <TextInput
+                  style={{ ...input, fontFamily: 'SpaceMono-Regular' }}
+                  placeholder="1–31" placeholderTextColor={T.text.muted} keyboardType="number-pad"
+                  value={dayText}
+                  onChangeText={(t) => {
+                    const digits = t.replace(/\D/g, "");
+                    setDayText(digits);
+                    if (!digits) { recurringForm.setValue("dayOfMonth", undefined); return; }
+                    const n = parseInt(digits, 10);
+                    if (!isNaN(n)) recurringForm.setValue("dayOfMonth", Math.min(31, n));
+                  }}
+                />
               </View>
             )}
 

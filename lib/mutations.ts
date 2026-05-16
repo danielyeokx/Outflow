@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { db } from "./db";
 import { expenses, learnedKeywords, categories, recurringExpenses } from "./schema";
 import { RecurringFormValues } from "./schema";
@@ -7,6 +9,7 @@ import { eq, sql } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
+import { writeSettings, readSettings } from "./settings";
 
 const CATEGORY_GRAYS = [
   '#CCCCCC', '#AAAAAA', '#888888', '#EEEEEE',
@@ -26,11 +29,12 @@ export function useAddExpense() {
   return useMutation({
     mutationFn: async (values: ExpenseFormValues) => {
       const id = newId();
+      const { defaultCurrency } = await readSettings();
       await db.insert(expenses).values({
         id,
         categoryId: values.categoryId,
         amountCents: values.amountCents,
-        currency: "SGD",
+        currency: values.currency ?? defaultCurrency,
         itemName: values.itemName,
         spentAt: values.spentAt ?? todayISO(),
         note: values.note ?? null,
@@ -179,6 +183,7 @@ export function useAddRecurring() {
   return useMutation({
     mutationFn: async (values: RecurringFormValues) => {
       const id = newId();
+      const { defaultCurrency } = await readSettings();
       // Auto-set start to today; end to last day of expiry month/year if set
       const startDate = new Date().toISOString().slice(0, 10);
       let endDate: string | null = null;
@@ -190,7 +195,7 @@ export function useAddRecurring() {
         id,
         itemName: values.itemName,
         amountCents: values.amountCents,
-        currency: "SGD",
+        currency: values.currency ?? defaultCurrency,
         categoryId: values.categoryId,
         frequency: values.frequency,
         dayOfMonth: values.dayOfMonth ?? null,
@@ -222,4 +227,96 @@ export function useDeleteRecurring() {
       queryClient.invalidateQueries({ queryKey: ["recurring"] });
     },
   });
+}
+
+export function useUpdateRecurring() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: RecurringFormValues }) => {
+      let endDate: string | null = null;
+      if (values.expiryYear && values.expiryMonth) {
+        const lastDay = getDaysInMonth(new Date(values.expiryYear, values.expiryMonth - 1));
+        endDate = `${values.expiryYear}-${String(values.expiryMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      }
+      const { defaultCurrency } = await readSettings();
+      await db.update(recurringExpenses).set({
+        itemName: values.itemName,
+        amountCents: values.amountCents,
+        currency: values.currency ?? defaultCurrency,
+        categoryId: values.categoryId,
+        frequency: values.frequency,
+        dayOfMonth: values.dayOfMonth ?? null,
+        dayOfWeek: values.dayOfWeek ?? null,
+        intervalDays: values.intervalDays ?? null,
+        monthOfYear: values.monthOfYear ?? null,
+        endDate,
+        note: values.note ?? null,
+      }).where(eq(recurringExpenses.id, id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
+    },
+  });
+}
+
+export function useSetDefaultCurrency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (currency: string) => {
+      await writeSettings({ defaultCurrency: currency });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: ["monthly-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+    },
+  });
+}
+
+export function useClearAllData() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await db.delete(expenses);
+      await db.delete(recurringExpenses);
+      await db.delete(learnedKeywords);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["daily-totals"] });
+      queryClient.invalidateQueries({ queryKey: ["recurring"] });
+      queryClient.invalidateQueries({ queryKey: ["learned-keywords"] });
+    },
+  });
+}
+
+export async function exportExpensesCSV(): Promise<void> {
+  const rows = await db
+    .select({
+      spentAt: expenses.spentAt,
+      itemName: expenses.itemName,
+      categoryName: categories.name,
+      amountCents: expenses.amountCents,
+      currency: expenses.currency,
+      note: expenses.note,
+    })
+    .from(expenses)
+    .innerJoin(categories, eq(expenses.categoryId, categories.id))
+    .orderBy(expenses.spentAt);
+
+  const header = 'Date,Item,Category,Amount,Currency,Note';
+  const lines = rows.map((r) => {
+    const note = r.note ? `"${r.note.replace(/"/g, '""')}"` : '';
+    return `${r.spentAt},"${r.itemName.replace(/"/g, '""')}","${r.categoryName}",${(r.amountCents / 100).toFixed(2)},${r.currency},${note}`;
+  });
+
+  const csv = [header, ...lines].join('\n');
+  const path = `${FileSystem.documentDirectory}outflow-${todayISO()}.csv`;
+  await FileSystem.writeAsStringAsync(path, csv, { encoding: 'utf8' });
+
+  const canShare = await Sharing.isAvailableAsync();
+  if (!canShare) {
+    throw new Error("Sharing is not available on this device");
+  }
+  await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
 }
