@@ -9,8 +9,6 @@ Outflow was built out of frustration with modern budgeting apps — ad-heavy, su
 The entire application — problem definition, UX design, and working code — was built within a **5-hour timebox** using agentic coding workflows to compress the engineering timeline.
 
 <img width="3680" height="2760" alt="mockup" src="https://github.com/user-attachments/assets/a0f458ab-1d41-4c70-a62c-4ec253ba367b" />
-<img width="3680" height="2760" alt="mockup3" src="https://github.com/user-attachments/assets/bcd6c737-4198-4544-9861-2b7ecff66206" />
-<img width="3680" height="2760" alt="mockup6" src="https://github.com/user-attachments/assets/2bc65755-08da-4e39-a2d1-c981b3c59b41" />
 
 
 ---
@@ -24,6 +22,10 @@ The entire application — problem definition, UX design, and working code — w
 - **Category management** — 8 default categories seeded on first launch. Create, rename, and delete your own. Each category has a colour and icon that renders in grayscale to match the app aesthetic.
 - **CSV export** — export your full expense history from the settings tab via the iOS share sheet.
 - **Local-first, no account required** — all data is stored on-device in SQLite. Nothing leaves your phone.
+
+<img width="3680" height="2760" alt="mockup3" src="https://github.com/user-attachments/assets/bcd6c737-4198-4544-9861-2b7ecff66206" />
+<img width="3680" height="2760" alt="mockup6" src="https://github.com/user-attachments/assets/2bc65755-08da-4e39-a2d1-c981b3c59b41" />
+
 
 ---
 
