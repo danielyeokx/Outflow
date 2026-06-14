@@ -305,7 +305,7 @@ export default function AddScreen() {
                         const isFuture = year === today.getFullYear() && month === today.getMonth() + 1 && d > today.getDate();
                         const active = day === d;
                         return (
-                          <Pressable key={d} onPress={() => { if (!isFuture) updateDate(year, month, d); }} style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}>
+                          <Pressable key={d} onPress={() => { if (isFuture) return; updateDate(year, month, d); if (!active) setDatePickerOpen(false); }} style={{ flex: 1, paddingVertical: 10, borderRadius: T.radius, borderWidth: 1, borderColor: active ? T.text.secondary : T.border, backgroundColor: active ? T.elevated : 'transparent', alignItems: 'center' }}>
                             <Text style={{ color: isFuture ? T.text.muted : (active ? T.text.primary : T.text.secondary), fontSize: 12, fontFamily: 'SpaceMono-Regular' }}>{d}</Text>
                           </Pressable>
                         );

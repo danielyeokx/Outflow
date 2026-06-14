@@ -11,13 +11,14 @@ interface DayTotal {
 
 interface Props {
   data: DayTotal[];
+  onDayPress?: (day: string) => void;
 }
 
 const CHART_HEIGHT = 160;
 const YAXIS_W = 35;
 const SPACING = 8;
 
-export default function MonthlyBarChart({ data }: Props) {
+export default function MonthlyBarChart({ data, onDayPress }: Props) {
   const [dataAreaWidth, setDataAreaWidth] = useState(0);
   const maxVal = Math.max(...data.map((d) => d.total), 1);
   const n = data.length;
@@ -67,6 +68,7 @@ export default function MonthlyBarChart({ data }: Props) {
             xAxisThickness={0}
             yAxisThickness={0}
             yAxisLabelWidth={YAXIS_W}
+            onPress={(_: unknown, index: number) => onDayPress?.(data[index].day)}
           />
         )}
       </View>

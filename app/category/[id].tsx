@@ -43,7 +43,7 @@ export default function CategoryDetailScreen() {
 
   function handleRename() {
     const name = renameText.trim();
-    if (!name || name === category.name) return;
+    if (!name || name === category!.name) return;
     renameCategory(
       { id, name },
       { onError: () => Alert.alert("Error", "Could not rename category.") }

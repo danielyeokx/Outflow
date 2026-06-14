@@ -40,7 +40,7 @@ export default function CategoryPicker({ categories, value, onChange, error }: P
               const IC = (Icons[selected.icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
               return <IC size={14} color={toGray(selected.color)} />;
             })()}
-            <Text style={{ color: T.text.primary, fontSize: 14, flex: 1, marginLeft: 10 }}>{selected.name}</Text>
+            <Text style={{ color: T.text.primary, fontSize: 14, fontFamily: 'SpaceMono-Regular', flex: 1, marginLeft: 10 }}>{selected.name}</Text>
           </>
         ) : (
           <Text style={{ color: T.text.muted, fontSize: 14, flex: 1, fontFamily: 'SpaceMono-Regular' }}>-- SELECT --</Text>

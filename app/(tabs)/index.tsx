@@ -58,7 +58,7 @@ export default function OverviewScreen() {
 
         {dailyTotals.some((d) => d.total > 0) && (
           <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
-            <MonthlyBarChart data={dailyTotals} />
+            <MonthlyBarChart data={dailyTotals} onDayPress={(day) => router.push(`/(tabs)/expenses?focusDate=${day}`)} />
           </View>
         )}
 
