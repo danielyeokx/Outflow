@@ -5,6 +5,7 @@ export const categories = sqliteTable("categories", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   color: text("color").notNull(),
+  colorOverride: text("color_override"), // user-picked color; overrides theme-derived color in all color themes
   icon: text("icon").notNull(),
   sortOrder: int("sort_order").notNull().default(0),
   isDefault: int("is_default", { mode: "boolean" }).notNull().default(true),

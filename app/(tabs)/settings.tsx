@@ -3,9 +3,9 @@ import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight, ChevronDown, Download, Trash2 } from "lucide-react-native";
-import { useCategories, useDefaultCurrency } from "../../lib/queries";
-import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, exportExpensesCSV } from "../../lib/mutations";
-import { T, toGray } from "../../lib/theme";
+import { useCategories, useDefaultCurrency, useColorTheme } from "../../lib/queries";
+import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, useSetColorTheme, exportExpensesCSV } from "../../lib/mutations";
+import { T, getCategoryColor, COLOR_THEMES } from "../../lib/theme";
 import { CURRENCIES } from "../../lib/rates";
 import DotGrid from "../../components/DotGrid";
 import PageHeader from "../../components/PageHeader";
@@ -21,9 +21,9 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-function CategoryRow({ id, name, color, icon, isLast }: { id: string; name: string; color: string; icon: string; isLast: boolean }) {
+function CategoryRow({ id, name, color, colorOverride, icon, isLast, colorTheme }: { id: string; name: string; color: string; colorOverride?: string | null; icon: string; isLast: boolean; colorTheme: import("../../lib/theme").ColorTheme }) {
   const IconComponent = (Icons[icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
-  const gray = toGray(color);
+  const gray = getCategoryColor(color, colorTheme, colorOverride);
 
   return (
     <Pressable
@@ -51,6 +51,8 @@ export default function SettingsScreen() {
   const { mutate: clearAllData, isPending: clearing } = useClearAllData();
   const { mutate: clearKeywords, isPending: clearingKeywords } = useClearAllKeywords();
   const { mutate: resetCategories, isPending: resettingCategories } = useResetCategories();
+  const { data: colorTheme = "neutral" } = useColorTheme();
+  const { mutate: setColorTheme } = useSetColorTheme();
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -144,10 +146,42 @@ export default function SettingsScreen() {
                 id={item.id}
                 name={item.name}
                 color={item.color}
+                colorOverride={item.colorOverride}
                 icon={item.icon}
                 isLast={index === cats.length - 1}
+                colorTheme={colorTheme}
               />
             ))}
+          </View>
+        </View>
+
+        {/* Color theme */}
+        <View>
+          <SectionLabel label="// COLOR.THEME" />
+          <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {COLOR_THEMES.map((opt) => {
+              const active = colorTheme === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => setColorTheme(opt.id)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    paddingVertical: 8,
+                    paddingHorizontal: 10,
+                    borderRadius: T.radius,
+                    borderWidth: 1,
+                    borderColor: active ? T.text.secondary : T.border,
+                    backgroundColor: active ? T.elevated : 'transparent',
+                  }}
+                >
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: opt.swatch }} />
+                  <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 

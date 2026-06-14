@@ -6,7 +6,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000001",
     name: "Food & Drinks",
-    color: "#FF6B6B",
+    color: "#d74242",
+    colorOverride: null,
     icon: "UtensilsCrossed",
     sortOrder: 0,
     isDefault: true,
@@ -15,7 +16,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000002",
     name: "Transport",
-    color: "#4ECDC4",
+    color: "#d78c42",
+    colorOverride: null,
     icon: "Car",
     sortOrder: 1,
     isDefault: true,
@@ -24,7 +26,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000003",
     name: "Shopping",
-    color: "#FFE66D",
+    color: "#d7be42",
+    colorOverride: null,
     icon: "ShoppingBag",
     sortOrder: 2,
     isDefault: true,
@@ -33,7 +36,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000004",
     name: "Bills",
-    color: "#A8E6CF",
+    color: "#42d767",
+    colorOverride: null,
     icon: "FileText",
     sortOrder: 3,
     isDefault: true,
@@ -42,7 +46,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000005",
     name: "Entertainment",
-    color: "#FF8B94",
+    color: "#428cd7",
+    colorOverride: null,
     icon: "Gamepad2",
     sortOrder: 4,
     isDefault: true,
@@ -51,7 +56,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000006",
     name: "Health",
-    color: "#88D8C0",
+    color: "#8042d7",
+    colorOverride: null,
     icon: "Heart",
     sortOrder: 5,
     isDefault: true,
@@ -60,7 +66,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000007",
     name: "Travel",
-    color: "#FFA07A",
+    color: "#d7428c",
+    colorOverride: null,
     icon: "Plane",
     sortOrder: 6,
     isDefault: true,
@@ -69,7 +76,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000008",
     name: "Other",
-    color: "#C3A6FF",
+    color: "#e48181",
+    colorOverride: null,
     icon: "MoreHorizontal",
     sortOrder: 7,
     isDefault: true,

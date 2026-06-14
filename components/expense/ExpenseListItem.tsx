@@ -2,8 +2,8 @@ import { View, Text, Pressable } from "react-native";
 import { Trash2 } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
 import { formatCurrency } from "../../lib/format";
-import { T, toGray } from "../../lib/theme";
-import { ExpenseWithCategory, useDefaultCurrency } from "../../lib/queries";
+import { T, getCategoryColor } from "../../lib/theme";
+import { ExpenseWithCategory, useDefaultCurrency, useColorTheme } from "../../lib/queries";
 import { convertCurrency } from "../../lib/rates";
 
 type IconName = keyof typeof Icons;
@@ -16,7 +16,8 @@ interface Props {
 
 export default function ExpenseListItem({ expense, onDelete, onPress }: Props) {
   const IconComponent = (Icons[(expense.categoryIcon as IconName)] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
-  const gray = toGray(expense.categoryColor);
+  const { data: colorTheme = "neutral" } = useColorTheme();
+  const gray = getCategoryColor(expense.categoryColor, colorTheme, expense.categoryColorOverride);
   const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
   const showConversion = expense.currency !== defaultCurrency;
   const convertedCents = showConversion ? convertCurrency(expense.amountCents, expense.currency, defaultCurrency) : 0;

@@ -3,10 +3,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { RefreshCw, ChevronRight } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
 import { router } from "expo-router";
-import { useRecurring } from "../../lib/queries";
+import { useRecurring, useColorTheme } from "../../lib/queries";
 import { formatCurrency } from "../../lib/format";
 import { frequencyLabel, getNextDueDate } from "../../lib/recurring";
-import { T, toGray } from "../../lib/theme";
+import { T, getCategoryColor } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
 import PageHeader from "../../components/PageHeader";
 
@@ -14,6 +14,7 @@ type IconName = keyof typeof Icons;
 
 export default function RecurringScreen() {
   const { data: items = [] } = useRecurring();
+  const { data: colorTheme = "neutral" } = useColorTheme();
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: T.bg }}>
@@ -35,7 +36,7 @@ export default function RecurringScreen() {
           <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
             {items.map((item, index) => {
               const IC = (Icons[item.categoryIcon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
-              const gray = toGray(item.categoryColor);
+              const gray = getCategoryColor(item.categoryColor, colorTheme, item.categoryColorOverride);
               const nextDue = getNextDueDate(item);
 
               return (

@@ -11,11 +11,7 @@ import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
 import { writeSettings, readSettings } from "./settings";
 import { DEFAULT_CATEGORIES } from "./seeds";
-
-const CATEGORY_GRAYS = [
-  '#CCCCCC', '#AAAAAA', '#888888', '#EEEEEE',
-  '#BBBBBB', '#999999', '#666666', '#DDDDDD',
-];
+import { ColorTheme, CATEGORY_SWATCHES } from "./theme";
 
 function newId(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -127,7 +123,7 @@ export function useAddCategory() {
   return useMutation({
     mutationFn: async ({ name, icon, existingCount }: { name: string; icon: string; existingCount: number }) => {
       const id = newId();
-      const color = CATEGORY_GRAYS[existingCount % CATEGORY_GRAYS.length];
+      const color = CATEGORY_SWATCHES[existingCount % CATEGORY_SWATCHES.length];
       await db.insert(categories).values({
         id,
         name,
@@ -300,6 +296,30 @@ export function useSetDefaultCurrency() {
   });
 }
 
+export function useSetColorTheme() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (colorTheme: ColorTheme) => {
+      await writeSettings({ colorTheme });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+}
+
+export function useUpdateCategoryColor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, color }: { id: string; color: string | null }) => {
+      await db.update(categories).set({ colorOverride: color }).where(eq(categories.id, id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
 export function useClearAllKeywords() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -349,7 +369,7 @@ export function useResetCategories() {
           .values(cat)
           .onConflictDoUpdate({
             target: categories.id,
-            set: { name: cat.name, color: cat.color, icon: cat.icon, sortOrder: cat.sortOrder },
+            set: { name: cat.name, color: cat.color, colorOverride: null, icon: cat.icon, sortOrder: cat.sortOrder },
           });
       }
       // Re-enable static keywords

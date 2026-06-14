@@ -32,6 +32,7 @@ export function useExpenses(monthISO: string) {
           createdAt: expenses.createdAt,
           categoryName: categories.name,
           categoryColor: categories.color,
+          categoryColorOverride: categories.colorOverride,
           categoryIcon: categories.icon,
         })
         .from(expenses)
@@ -58,6 +59,7 @@ export function useMonthlySummary(monthISO: string) {
           categoryId: expenses.categoryId,
           categoryName: categories.name,
           categoryColor: categories.color,
+          categoryColorOverride: categories.colorOverride,
           categoryIcon: categories.icon,
           amountCents: expenses.amountCents,
           currency: expenses.currency,
@@ -66,12 +68,12 @@ export function useMonthlySummary(monthISO: string) {
         .innerJoin(categories, eq(expenses.categoryId, categories.id))
         .where(and(gte(expenses.spentAt, start), lte(expenses.spentAt, end)));
 
-      type CatRow = { categoryId: string; categoryName: string; categoryColor: string; categoryIcon: string; total: number };
+      type CatRow = { categoryId: string; categoryName: string; categoryColor: string; categoryColorOverride: string | null; categoryIcon: string; total: number };
       const map = new Map<string, CatRow>();
       for (const r of rows) {
         const converted = convertCurrency(r.amountCents, r.currency, defaultCurrency);
         if (!map.has(r.categoryId)) {
-          map.set(r.categoryId, { categoryId: r.categoryId, categoryName: r.categoryName, categoryColor: r.categoryColor, categoryIcon: r.categoryIcon, total: 0 });
+          map.set(r.categoryId, { categoryId: r.categoryId, categoryName: r.categoryName, categoryColor: r.categoryColor, categoryColorOverride: r.categoryColorOverride, categoryIcon: r.categoryIcon, total: 0 });
         }
         map.get(r.categoryId)!.total += converted;
       }
@@ -156,6 +158,7 @@ export function useRecurring() {
           createdAt: recurringExpenses.createdAt,
           categoryName: categories.name,
           categoryColor: categories.color,
+          categoryColorOverride: categories.colorOverride,
           categoryIcon: categories.icon,
         })
         .from(recurringExpenses)
@@ -213,6 +216,14 @@ export function useStaticKeywordsEnabled() {
   return useQuery({
     queryKey: ["settings", "staticKeywordsEnabled"],
     queryFn: async () => (await readSettings()).staticKeywordsEnabled,
+    staleTime: Infinity,
+  });
+}
+
+export function useColorTheme() {
+  return useQuery({
+    queryKey: ["settings", "colorTheme"],
+    queryFn: async () => (await readSettings()).colorTheme,
     staleTime: Infinity,
   });
 }

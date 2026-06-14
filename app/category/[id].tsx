@@ -5,12 +5,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
-import { ChevronLeft, Trash2, Plus, Save } from "lucide-react-native";
+import { ChevronLeft, Trash2, Plus, Save, Check } from "lucide-react-native";
 import * as Icons from "lucide-react-native";
-import { useCategories, useKeywordsForCategory, useStaticKeywordsEnabled } from "../../lib/queries";
-import { useAddKeyword, useDeleteKeyword, useRenameCategory, useDeleteCategory } from "../../lib/mutations";
+import { useCategories, useKeywordsForCategory, useStaticKeywordsEnabled, useColorTheme } from "../../lib/queries";
+import { useAddKeyword, useDeleteKeyword, useRenameCategory, useDeleteCategory, useUpdateCategoryColor } from "../../lib/mutations";
 import { getStaticKeywordsForCategory } from "../../lib/categorize";
-import { T, toGray } from "../../lib/theme";
+import { T, getCategoryColor, CATEGORY_SWATCHES } from "../../lib/theme";
 import DotGrid from "../../components/DotGrid";
 
 type IconName = keyof typeof Icons;
@@ -28,6 +28,8 @@ export default function CategoryDetailScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { mutate: renameCategory, isPending: renaming } = useRenameCategory();
   const { mutate: deleteCategory, isPending: deleting } = useDeleteCategory();
+  const { mutate: updateCategoryColor, isPending: updatingColor } = useUpdateCategoryColor();
+  const { data: colorTheme = "neutral" } = useColorTheme();
 
   const category = cats.find((c) => c.id === id);
 
@@ -37,7 +39,7 @@ export default function CategoryDetailScreen() {
 
   if (!category) return null;
 
-  const gray = toGray(category.color);
+  const gray = getCategoryColor(category.color, colorTheme, category.colorOverride);
   const staticKws = staticEnabled ? getStaticKeywordsForCategory(id) : [];
   const IconComponent = (Icons[category.icon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
 
@@ -158,6 +160,45 @@ export default function CategoryDetailScreen() {
             }
           </Pressable>
         </View>
+
+        {/* Category color */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>
+            // CATEGORY.COLOR
+          </Text>
+          {category.colorOverride && (
+            <Pressable onPress={() => updateCategoryColor({ id, color: null })} disabled={updatingColor} hitSlop={8}>
+              <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>RESET</Text>
+            </Pressable>
+          )}
+        </View>
+        <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, marginBottom: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {CATEGORY_SWATCHES.map((swatch) => {
+            const active = category.colorOverride?.toLowerCase() === swatch.toLowerCase();
+            return (
+              <Pressable
+                key={swatch}
+                onPress={() => updateCategoryColor({ id, color: active ? null : swatch })}
+                disabled={updatingColor}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: T.radius,
+                  backgroundColor: swatch,
+                  borderWidth: active ? 2 : 1,
+                  borderColor: active ? T.text.primary : T.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {active && <Check size={14} color="#000000" />}
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', lineHeight: 16, marginBottom: 28 }}>
+          Custom color applies across all color themes. Tap a swatch again or RESET to use the theme default.
+        </Text>
 
         {/* Add keyword input */}
         <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 10 }}>

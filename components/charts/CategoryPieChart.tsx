@@ -1,12 +1,14 @@
 import { View, Text } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { formatCurrency } from "../../lib/format";
-import { T, toGray } from "../../lib/theme";
+import { T, getCategoryColor } from "../../lib/theme";
+import { useColorTheme } from "../../lib/queries";
 
 interface Row {
   categoryId: string;
   categoryName: string;
   categoryColor: string;
+  categoryColorOverride?: string | null;
   total: number;
 }
 
@@ -17,9 +19,10 @@ interface Props {
 }
 
 export default function CategoryPieChart({ data, total, currency }: Props) {
+  const { data: colorTheme = "neutral" } = useColorTheme();
   const pieData = data.map((row) => ({
     value: row.total,
-    color: toGray(row.categoryColor),
+    color: getCategoryColor(row.categoryColor, colorTheme, row.categoryColorOverride),
   }));
 
   return (
@@ -46,7 +49,7 @@ export default function CategoryPieChart({ data, total, currency }: Props) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, paddingHorizontal: 14, gap: 8 }}>
           {data.map((row) => (
             <View key={row.categoryId} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <View style={{ width: 6, height: 6, backgroundColor: toGray(row.categoryColor) }} />
+              <View style={{ width: 6, height: 6, backgroundColor: getCategoryColor(row.categoryColor, colorTheme, row.categoryColorOverride) }} />
               <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular' }}>
                 {row.categoryName.toUpperCase()}
               </Text>

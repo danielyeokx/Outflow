@@ -2,12 +2,15 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 const SETTINGS_PATH = FileSystem.documentDirectory + 'settings.json';
 
+import { ColorTheme } from "./theme";
+
 export type AppSettings = {
   defaultCurrency: string;
   staticKeywordsEnabled: boolean;
+  colorTheme: ColorTheme;
 };
 
-const DEFAULTS: AppSettings = { defaultCurrency: 'SGD', staticKeywordsEnabled: true };
+const DEFAULTS: AppSettings = { defaultCurrency: 'SGD', staticKeywordsEnabled: true, colorTheme: 'neutral' };
 
 export async function readSettings(): Promise<AppSettings> {
   try {

@@ -52,7 +52,9 @@ const m0002 = `CREATE TABLE \`recurring_expenses\` (
 	FOREIGN KEY (\`category_id\`) REFERENCES \`categories\`(\`id\`) ON UPDATE no action ON DELETE no action
 );`;
 
+const m0003 = `ALTER TABLE \`categories\` ADD \`color_override\` text;`;
+
 export default {
   journal,
-  migrations: { m0000, m0001, m0002 }
+  migrations: { m0000, m0001, m0002, m0003 }
 };
