@@ -6,7 +6,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000001",
     name: "Food & Drinks",
-    color: "#d74242",
+    color: "#f62323",
     colorOverride: null,
     icon: "UtensilsCrossed",
     sortOrder: 0,
@@ -16,7 +16,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000002",
     name: "Transport",
-    color: "#d78c42",
+    color: "#f68523",
     colorOverride: null,
     icon: "Car",
     sortOrder: 1,
@@ -26,7 +26,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000003",
     name: "Shopping",
-    color: "#d7be42",
+    color: "#f6cc23",
     colorOverride: null,
     icon: "ShoppingBag",
     sortOrder: 2,
@@ -36,7 +36,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000004",
     name: "Bills",
-    color: "#42d767",
+    color: "#23f657",
     colorOverride: null,
     icon: "FileText",
     sortOrder: 3,
@@ -46,7 +46,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000005",
     name: "Entertainment",
-    color: "#428cd7",
+    color: "#239ef6",
     colorOverride: null,
     icon: "Gamepad2",
     sortOrder: 4,
@@ -56,7 +56,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000006",
     name: "Health",
-    color: "#8042d7",
+    color: "#6223f6",
     colorOverride: null,
     icon: "Heart",
     sortOrder: 5,
@@ -66,7 +66,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000007",
     name: "Travel",
-    color: "#d7428c",
+    color: "#f6238c",
     colorOverride: null,
     icon: "Plane",
     sortOrder: 6,
@@ -76,7 +76,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: "00000000-0000-0000-0000-000000000008",
     name: "Other",
-    color: "#e48181",
+    color: "#23d6f6",
     colorOverride: null,
     icon: "MoreHorizontal",
     sortOrder: 7,

@@ -32,13 +32,13 @@ export const COLOR_THEMES: { id: ColorTheme; label: string; swatch: string }[] =
   { id: 'neutral', label: 'NEUTRAL',      swatch: '#AAAAAA' },
   { id: 'warm',    label: 'WARM',         swatch: '#FF9F40' },
   { id: 'cool',    label: 'COOL',         swatch: '#5C9DFF' },
-  { id: 'red',     label: 'RED',          swatch: '#FF6B6B' },
-  { id: 'orange',  label: 'ORANGE',       swatch: '#FFA94D' },
-  { id: 'yellow',  label: 'YELLOW',       swatch: '#FFD93D' },
-  { id: 'green',   label: 'GREEN',        swatch: '#69DB7C' },
-  { id: 'blue',    label: 'BLUE',         swatch: '#4DABF7' },
-  { id: 'purple',  label: 'PURPLE',       swatch: '#B197FC' },
-  { id: 'pink',    label: 'PINK',         swatch: '#FF8FAB' },
+  { id: 'red',     label: 'RED',          swatch: hslToHex(0, 92, 55) },
+  { id: 'orange',  label: 'ORANGE',       swatch: hslToHex(28, 92, 55) },
+  { id: 'yellow',  label: 'YELLOW',       swatch: hslToHex(48, 92, 55) },
+  { id: 'green',   label: 'GREEN',        swatch: hslToHex(135, 92, 55) },
+  { id: 'blue',    label: 'BLUE',         swatch: hslToHex(205, 92, 55) },
+  { id: 'purple',  label: 'PURPLE',       swatch: hslToHex(258, 92, 55) },
+  { id: 'pink',    label: 'PINK',         swatch: hslToHex(330, 92, 55) },
 ];
 
 export function hslToHex(h: number, s: number, l: number): string {
@@ -63,38 +63,42 @@ const HUE_RANGES: Record<string, [number, number]> = {
   cool: [200, 320],
 };
 
+// Neon hue angles, adapted from classic cyberpunk/synthwave palettes
+// (electric cyan, hot magenta, violet, neon lime) — chosen to read as
+// vibrant signage against the near-black UI rather than pastel.
 const SINGLE_HUES: Record<string, number> = {
-  red: 0, orange: 30, yellow: 50, green: 135, blue: 210, purple: 265, pink: 330,
+  red: 0, orange: 28, yellow: 48, lime: 95, green: 135, teal: 170,
+  cyan: 189, blue: 205, purple: 258, magenta: 295, pink: 330,
 };
 
-// Order families travel through when picking defaults / hashing shades
-const HUE_FAMILY_ORDER: (keyof typeof SINGLE_HUES)[] = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink'];
+// Hues used for the per-category custom-color swatch grid — wider than the
+// 7 single-hue themes so categories have real variety to pick from
+const HUE_FAMILY_ORDER: (keyof typeof SINGLE_HUES)[] = [
+  'red', 'orange', 'yellow', 'lime', 'green', 'teal', 'cyan', 'blue', 'purple', 'magenta', 'pink',
+];
 
-// Preset swatches for per-category custom colors — grouped by hue family,
-// each family contributing a Light / Base / Dark shade in that order
-export const CATEGORY_SWATCHES: string[] = HUE_FAMILY_ORDER.flatMap((family) => {
-  const hue = SINGLE_HUES[family];
-  return [hslToHex(hue, 65, 70), hslToHex(hue, 65, 55), hslToHex(hue, 65, 40)];
-});
+// One vibrant neon swatch per hue — high saturation, mid lightness so it
+// pops on the dark background without washing out into pastel
+export const CATEGORY_SWATCHES: string[] = HUE_FAMILY_ORDER.map((family) => hslToHex(SINGLE_HUES[family], 92, 55));
 
 const SHADE_BUCKETS = 8;
 
 // Resolve a category's stored color to its display color under the active theme.
-// `override` (if set) wins regardless of theme — it's the user's explicit pick.
+// `override` only applies in the multi theme — it's only editable there, and
+// switching to a themed mode should make every category conform to that theme.
 export function getCategoryColor(hex: string, theme: ColorTheme, override?: string | null): string {
-  if (override) return override;
-  if (theme === 'multi') return hex;
+  if (theme === 'multi') return override ?? hex;
   if (theme === 'neutral') return toGray(hex);
 
   const idx = hashIndex(hex, SHADE_BUCKETS);
   if (theme === 'warm' || theme === 'cool') {
     const [start, end] = HUE_RANGES[theme];
     const hue = start + (idx / (SHADE_BUCKETS - 1)) * (end - start);
-    return hslToHex(hue, 65, 60);
+    return hslToHex(hue, 88, 56);
   }
   const hue = SINGLE_HUES[theme] ?? 0;
-  const lightness = 45 + (idx / (SHADE_BUCKETS - 1)) * 30; // 45–75%
-  return hslToHex(hue, 65, lightness);
+  const lightness = 42 + (idx / (SHADE_BUCKETS - 1)) * 28; // 42–70%, vibrant but distinct per category
+  return hslToHex(hue, 92, lightness);
 }
 
 // Card style shorthand

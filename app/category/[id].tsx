@@ -161,44 +161,52 @@ export default function CategoryDetailScreen() {
           </Pressable>
         </View>
 
-        {/* Category color */}
+        {/* Category color — editable only in MULTI-COLOUR theme */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular' }}>
             // CATEGORY.COLOR
           </Text>
-          {category.colorOverride && (
+          {colorTheme === 'multi' && category.colorOverride && (
             <Pressable onPress={() => updateCategoryColor({ id, color: null })} disabled={updatingColor} hitSlop={8}>
               <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>RESET</Text>
             </Pressable>
           )}
         </View>
-        <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, marginBottom: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {CATEGORY_SWATCHES.map((swatch) => {
-            const active = category.colorOverride?.toLowerCase() === swatch.toLowerCase();
-            return (
-              <Pressable
-                key={swatch}
-                onPress={() => updateCategoryColor({ id, color: active ? null : swatch })}
-                disabled={updatingColor}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: T.radius,
-                  backgroundColor: swatch,
-                  borderWidth: active ? 2 : 1,
-                  borderColor: active ? T.text.primary : T.border,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {active && <Check size={14} color="#000000" />}
-              </Pressable>
-            );
-          })}
-        </View>
-        <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', lineHeight: 16, marginBottom: 28 }}>
-          Custom color applies across all color themes. Tap a swatch again or RESET to use the theme default.
-        </Text>
+        {colorTheme === 'multi' ? (
+          <>
+            <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, padding: 14, marginBottom: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {CATEGORY_SWATCHES.map((swatch) => {
+                const active = category.colorOverride?.toLowerCase() === swatch.toLowerCase();
+                return (
+                  <Pressable
+                    key={swatch}
+                    onPress={() => updateCategoryColor({ id, color: active ? null : swatch })}
+                    disabled={updatingColor}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: T.radius,
+                      backgroundColor: swatch,
+                      borderWidth: active ? 2 : 1,
+                      borderColor: active ? T.text.primary : T.border,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {active && <Check size={14} color="#000000" />}
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', lineHeight: 16, marginBottom: 28 }}>
+              Tap a swatch again or RESET to use the default color.
+            </Text>
+          </>
+        ) : (
+          <Text style={{ color: T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', lineHeight: 16, marginBottom: 28 }}>
+            Custom colors are only editable in the MULTI-COLOUR theme. Switch theme in Settings to customize.
+          </Text>
+        )}
 
         {/* Add keyword input */}
         <Text style={{ color: T.text.muted, fontSize: 10, letterSpacing: 3, fontFamily: 'SpaceMono-Regular', marginBottom: 10 }}>
