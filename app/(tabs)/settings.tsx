@@ -3,8 +3,8 @@ import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ChevronRight, ChevronDown, Download, Upload, Trash2 } from "lucide-react-native";
-import { useCategories, useDefaultCurrency, useColorTheme } from "../../lib/queries";
-import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, useSetColorTheme, useImportBackup, exportExpensesCSV, exportBackup } from "../../lib/mutations";
+import { useCategories, useDefaultCurrency, useColorTheme, useWeekStartsOn } from "../../lib/queries";
+import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, useSetColorTheme, useSetWeekStartsOn, useImportBackup, exportExpensesCSV, exportBackup } from "../../lib/mutations";
 import { T, getCategoryColor, COLOR_THEMES } from "../../lib/theme";
 import { CURRENCIES } from "../../lib/rates";
 import DotGrid from "../../components/DotGrid";
@@ -53,6 +53,8 @@ export default function SettingsScreen() {
   const { mutate: resetCategories, isPending: resettingCategories } = useResetCategories();
   const { data: colorTheme = "neutral" } = useColorTheme();
   const { mutate: setColorTheme } = useSetColorTheme();
+  const { data: weekStartsOn = 0 } = useWeekStartsOn();
+  const { mutate: setWeekStartsOn } = useSetWeekStartsOn();
   const { mutate: importBackup, isPending: importing } = useImportBackup();
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -255,6 +257,33 @@ export default function SettingsScreen() {
                 })}
               </View>
             )}
+            {/* First day of week */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, borderTopWidth: 1, borderTopColor: T.border }}>
+              <Text style={{ color: T.text.secondary, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 2, flex: 1 }}>FIRST DAY OF WEEK</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {([{ value: 0 as const, label: 'SUN' }, { value: 1 as const, label: 'MON' }]).map((opt) => {
+                  const active = weekStartsOn === opt.value;
+                  return (
+                    <Pressable key={opt.value} onPress={() => setWeekStartsOn(opt.value)}>
+                      {({ pressed }) => (
+                        <View
+                          style={{
+                            paddingVertical: 8,
+                            paddingHorizontal: 12,
+                            borderRadius: T.radius,
+                            borderWidth: 1,
+                            borderColor: active ? T.text.secondary : T.border,
+                            backgroundColor: active ? T.elevated : pressed ? T.elevated : 'transparent',
+                          }}
+                        >
+                          <Text style={{ color: active ? T.text.primary : T.text.muted, fontSize: 10, fontFamily: 'SpaceMono-Regular', letterSpacing: 1 }}>{opt.label}</Text>
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
           </View>
         </View>
 

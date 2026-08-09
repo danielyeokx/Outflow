@@ -8,9 +8,10 @@ export type AppSettings = {
   defaultCurrency: string;
   staticKeywordsEnabled: boolean;
   colorTheme: ColorTheme;
+  weekStartsOn: 0 | 1; // 0 = Sunday, 1 = Monday
 };
 
-const DEFAULTS: AppSettings = { defaultCurrency: 'SGD', staticKeywordsEnabled: true, colorTheme: 'neutral' };
+const DEFAULTS: AppSettings = { defaultCurrency: 'SGD', staticKeywordsEnabled: true, colorTheme: 'neutral', weekStartsOn: 0 };
 
 export async function readSettings(): Promise<AppSettings> {
   try {

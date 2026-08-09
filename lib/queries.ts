@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { db } from "./db";
 import { expenses, categories, learnedKeywords, recurringExpenses } from "./schema";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
-import { monthBounds, todayISO } from "./format";
+import { monthBounds } from "./format";
 import { readSettings } from "./settings";
 import { convertCurrency } from "./rates";
 import { KEYWORD_MAP, normaliseKeyword } from "./categorize";
@@ -136,15 +136,10 @@ export function useDailyTotals(monthISO: string) {
           .map(([categoryId], index) => [categoryId, index])
       );
 
-      // Last 10 days ending at min(today, monthEnd) — all days shown, zero for no-spend days
-      const today = todayISO();
-      const windowEnd = today < end ? today : end;
+      // Every day of the month, start..end inclusive — zero for no-spend days
       const days: string[] = [];
-      for (let i = 9; i >= 0; i--) {
-        const d = new Date(windowEnd + 'T12:00:00Z'); // UTC noon avoids DST off-by-one
-        d.setUTCDate(d.getUTCDate() - i);
-        const iso = d.toISOString().slice(0, 10);
-        if (iso >= start) days.push(iso);
+      for (const d = new Date(start + 'T12:00:00Z'); d.toISOString().slice(0, 10) <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+        days.push(d.toISOString().slice(0, 10));
       }
       return days.map((day) => {
         // Category with the largest month-wide share goes first so it renders at the bottom of the stack
@@ -302,6 +297,14 @@ export function useColorTheme() {
   return useQuery({
     queryKey: ["settings", "colorTheme"],
     queryFn: async () => (await readSettings()).colorTheme,
+    staleTime: Infinity,
+  });
+}
+
+export function useWeekStartsOn() {
+  return useQuery({
+    queryKey: ["settings", "weekStartsOn"],
+    queryFn: async () => (await readSettings()).weekStartsOn,
     staleTime: Infinity,
   });
 }

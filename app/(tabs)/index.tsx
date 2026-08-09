@@ -10,7 +10,7 @@ import PageHeader from "../../components/PageHeader";
 import MonthHeader from "../../components/overview/MonthHeader";
 import CategoryBreakdown from "../../components/overview/CategoryBreakdown";
 import CategoryPieChart from "../../components/charts/CategoryPieChart";
-import MonthlyBarChart from "../../components/charts/MonthlyBarChart";
+import MonthlyHeatmap from "../../components/overview/MonthlyHeatmap";
 import { useMonthlySummary, useDailyTotals, useDefaultCurrency } from "../../lib/queries";
 
 export default function OverviewScreen() {
@@ -58,7 +58,7 @@ export default function OverviewScreen() {
 
         {dailyTotals.some((d) => d.total > 0) && (
           <View style={{ marginHorizontal: 20, marginBottom: 16 }}>
-            <MonthlyBarChart data={dailyTotals} onDayPress={(day) => router.push(`/(tabs)/expenses?focusDate=${day}`)} />
+            <MonthlyHeatmap monthISO={currentMonth} data={dailyTotals} currency={defaultCurrency} />
           </View>
         )}
 

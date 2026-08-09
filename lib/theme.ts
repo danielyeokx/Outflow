@@ -24,6 +24,24 @@ export function toGray(hex: string): string {
   return `#${h}${h}${h}`;
 }
 
+// Maps a day's spend total to a grayscale hex for the heatmap, via min-max
+// normalization against the month's min/max nonzero spend. Zero-spend days
+// should bypass this entirely (caller renders a fixed floor color + ✕ marker)
+// rather than being fed in as total=0, so they don't drag the min down and
+// wash out variation among the real nonzero days.
+export function spendIntensityToGray(total: number, min: number, max: number): string {
+  const FLOOR = 0x1a; // near-black, still visible against T.bg (#0A0A0A)
+  const CEIL = 0xf2; // near-white, avoids pure #FFFFFF glare
+  if (max <= min) {
+    // Every nonzero day spent the same amount — fully saturated rather than dark.
+    return total > 0 ? '#f2f2f2' : '#1a1a1a';
+  }
+  const t = (total - min) / (max - min);
+  const v = Math.round(FLOOR + t * (CEIL - FLOOR));
+  const h = v.toString(16).padStart(2, '0');
+  return `#${h}${h}${h}`;
+}
+
 // Color theme: applies to category colors throughout the app
 export type ColorTheme = 'multi' | 'neutral' | 'warm' | 'cool' | 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink';
 

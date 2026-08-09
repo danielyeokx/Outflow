@@ -312,6 +312,18 @@ export function useSetColorTheme() {
   });
 }
 
+export function useSetWeekStartsOn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (weekStartsOn: 0 | 1) => {
+      await writeSettings({ weekStartsOn });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+}
+
 export function useUpdateCategoryColor() {
   const queryClient = useQueryClient();
   return useMutation({

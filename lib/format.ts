@@ -1,4 +1,4 @@
-import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from "date-fns";
 import { getCurrencyDecimals } from "./rates";
 
 export function formatCurrency(minor: number, currency = "SGD"): string {
@@ -43,4 +43,16 @@ export function addMonths(isoDate: string, delta: number): string {
   const d = parseISO(isoDate);
   d.setMonth(d.getMonth() + delta);
   return format(d, "yyyy-MM-dd");
+}
+
+// Flat 7-column-aligned cell list for a calendar grid: leading nulls pad the
+// 1st of the month to its correct weekday column, no trailing pad needed.
+// weekStartsOn: 0 = grid's first column is Sunday, 1 = Monday.
+export function calendarGridDays(monthISO: string, weekStartsOn: 0 | 1 = 0): (string | null)[] {
+  const { start, end } = monthBounds(monthISO);
+  const startWeekday = getDay(parseISO(start)); // 0=Sun..6=Sat
+  const leadingPad = (startWeekday - weekStartsOn + 7) % 7;
+  const days = eachDayOfInterval({ start: parseISO(start), end: parseISO(end) })
+    .map((d) => format(d, "yyyy-MM-dd"));
+  return [...Array(leadingPad).fill(null), ...days];
 }
