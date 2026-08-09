@@ -56,6 +56,7 @@ export const recurringExpenses = sqliteTable("recurring_expenses", {
 });
 
 export type RecurringExpense = typeof recurringExpenses.$inferSelect;
+export type LearnedKeyword = typeof learnedKeywords.$inferSelect;
 
 export const recurringFormSchema = z.object({
   itemName:     z.string().min(1, "Item name is required").max(100),

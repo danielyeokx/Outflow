@@ -2,11 +2,13 @@ import { useState } from "react";
 import { View, Text } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { format, parseISO } from "date-fns";
-import { T } from "../../lib/theme";
+import { T, getCategoryColor } from "../../lib/theme";
+import { useColorTheme, DayCategoryTotal } from "../../lib/queries";
 
 interface DayTotal {
   day: string;
   total: number;
+  categories: DayCategoryTotal[];
 }
 
 interface Props {
@@ -20,6 +22,7 @@ const SPACING = 8;
 
 export default function MonthlyBarChart({ data, onDayPress }: Props) {
   const [dataAreaWidth, setDataAreaWidth] = useState(0);
+  const { data: colorTheme = "neutral" } = useColorTheme();
   const maxVal = Math.max(...data.map((d) => d.total), 1);
   const n = data.length;
 
@@ -30,10 +33,16 @@ export default function MonthlyBarChart({ data, onDayPress }: Props) {
     : 14;
 
   const barData = data.map((d) => ({
-    value: d.total / 100,
     label: format(parseISO(d.day), "d"),
-    frontColor: '#FFFFFF',
     labelTextStyle: { color: T.text.muted, fontSize: 9, fontFamily: 'SpaceMono-Regular' },
+    // Largest category is first in d.categories, so it lands at the bottom of the stack
+    stacks: d.categories.length > 0
+      ? d.categories.map((c, i) => ({
+          value: c.total / 100,
+          color: getCategoryColor(c.categoryColor, colorTheme, c.categoryColorOverride),
+          marginBottom: i === d.categories.length - 1 ? 0 : 1,
+        }))
+      : [{ value: 0, color: T.border }],
   }));
 
   return (
@@ -47,8 +56,8 @@ export default function MonthlyBarChart({ data, onDayPress }: Props) {
       >
         {dataAreaWidth > 0 && (
           <BarChart
-            key={barData.map((d) => d.value).join('|')}
-            data={barData}
+            key={data.map((d) => d.categories.map((c) => `${c.categoryId}:${c.total}`).join(',')).join('|')}
+            stackData={barData}
             height={CHART_HEIGHT}
             barWidth={barWidth}
             spacing={SPACING}

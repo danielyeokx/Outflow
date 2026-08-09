@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable,
+  View, Text, TextInput, Pressable, ScrollView,
   ActivityIndicator, Alert,
 } from "react-native";
 import { format, parseISO, getDaysInMonth } from "date-fns";
@@ -8,17 +8,20 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { X, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react-native";
+import * as Icons from "lucide-react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { expenseFormSchema, recurringFormSchema, ExpenseFormValues, RecurringFormValues } from "../lib/schema";
-import { useCategories, useLearnedKeywords, useDefaultCurrency } from "../lib/queries";
+import { useCategories, useLearnedKeywords, useDefaultCurrency, useRecentExpenseChips, useColorTheme } from "../lib/queries";
 import { useAddExpense, useAddRecurring } from "../lib/mutations";
 import { suggestCategoryId } from "../lib/categorize";
 import { todayISO } from "../lib/format";
 import { CURRENCIES, getCurrencyDecimals } from "../lib/rates";
-import { T, input } from "../lib/theme";
+import { T, input, getCategoryColor } from "../lib/theme";
 import Sheet from "../components/Sheet";
 import CategoryPicker from "../components/expense/CategoryPicker";
+
+type IconName = keyof typeof Icons;
 
 const DEBOUNCE_MS = 400;
 const FREQ_OPTIONS = [
@@ -44,6 +47,8 @@ export default function AddScreen() {
   const { data: categories = [] } = useCategories();
   const { data: learnedMap = {} } = useLearnedKeywords();
   const { data: defaultCurrency = "SGD" } = useDefaultCurrency();
+  const { data: recentChips = [] } = useRecentExpenseChips();
+  const { data: colorTheme = "neutral" } = useColorTheme();
   const { mutate: addExpense, isPending: pendingSingle } = useAddExpense();
   const { mutate: addRecurring, isPending: pendingRecurring } = useAddRecurring();
 
@@ -58,6 +63,7 @@ export default function AddScreen() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<any>(null);
   const dateSectionY = useRef(0);
+  const amountInputRef = useRef<TextInput>(null);
   const currentYear = new Date().getFullYear();
 
   const singleForm = useForm<ExpenseFormValues>({
@@ -160,11 +166,39 @@ export default function AddScreen() {
       {/* Scrollable form fields */}
       <KeyboardAwareScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 20 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} extraScrollHeight={24} enableOnAndroid>
 
+        {/* Quick add — recent items, tap to fill name + category */}
+        {type === "single" && recentChips.length > 0 && (
+          <View>
+            <Text style={L}>QUICK.ADD</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {recentChips.map((chip) => {
+                const IC = (Icons[chip.categoryIcon as IconName] ?? Icons.MoreHorizontal) as React.ComponentType<{ size: number; color: string }>;
+                const gray = getCategoryColor(chip.categoryColor, colorTheme, chip.categoryColorOverride);
+                return (
+                  <Pressable
+                    key={`${chip.itemName}-${chip.categoryId}`}
+                    onPress={() => {
+                      syncItemName(chip.itemName);
+                      syncCategory(chip.categoryId);
+                      amountInputRef.current?.focus();
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: T.elevated, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, paddingVertical: 9, paddingHorizontal: 12, gap: 8 }}
+                  >
+                    <IC size={13} color={gray} />
+                    <Text numberOfLines={1} style={{ color: T.text.primary, fontSize: 12, fontFamily: 'SpaceMono-Regular' }}>{chip.itemName}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Amount */}
         <View>
           <Text style={L}>AMOUNT</Text>
           <View style={{ flexDirection: 'row', alignItems: 'stretch', gap: 8 }}>
             <TextInput
+              ref={amountInputRef}
               style={{ ...input, flex: 1, fontSize: 26, fontFamily: 'SpaceMono-Regular', borderColor: errors.amountCents ? '#666' : T.border }}
               placeholder={getCurrencyDecimals(currency) === 0 ? "> 0" : "> 0.00"} placeholderTextColor={T.text.muted} keyboardType="number-pad"
               value={amountDigits ? `> ${formatDigits(amountDigits, getCurrencyDecimals(currency))}` : ""}

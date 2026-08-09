@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 import { db } from "./db";
 import { expenses, learnedKeywords, categories, recurringExpenses } from "./schema";
 import { RecurringFormValues } from "./schema";
@@ -9,7 +10,7 @@ import { eq, sql } from "drizzle-orm";
 import { ExpenseFormValues } from "./schema";
 import { todayISO } from "./format";
 import { normaliseKeyword, suggestCategoryId } from "./categorize";
-import { writeSettings, readSettings } from "./settings";
+import { writeSettings, readSettings, AppSettings } from "./settings";
 import { DEFAULT_CATEGORIES } from "./seeds";
 import { ColorTheme, CATEGORY_SWATCHES } from "./theme";
 
@@ -60,6 +61,7 @@ export function useAddExpense() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-expense-chips"] });
       queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
@@ -75,6 +77,7 @@ export function useDeleteExpense() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-expense-chips"] });
       queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
     },
@@ -194,6 +197,7 @@ export function useUpdateExpense() {
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-expense-chips"] });
       queryClient.refetchQueries({ queryKey: ["daily-totals"] });
       queryClient.invalidateQueries({ queryKey: ["expense", id] });
       queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
@@ -430,4 +434,98 @@ export async function exportExpensesCSV(): Promise<void> {
     throw new Error("Sharing is not available on this device");
   }
   await Sharing.shareAsync(path, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
+}
+
+const BACKUP_VERSION = 1;
+
+type Backup = {
+  version: number;
+  exportedAt: string;
+  settings: AppSettings;
+  categories: unknown[];
+  expenses: unknown[];
+  learnedKeywords: unknown[];
+  recurringExpenses: unknown[];
+};
+
+function isValidBackup(data: any): data is Backup {
+  return (
+    data &&
+    typeof data === "object" &&
+    data.version === BACKUP_VERSION &&
+    data.settings && typeof data.settings === "object" &&
+    Array.isArray(data.categories) &&
+    Array.isArray(data.expenses) &&
+    Array.isArray(data.learnedKeywords) &&
+    Array.isArray(data.recurringExpenses)
+  );
+}
+
+// Full local snapshot — categories, expenses, recurring entries, keywords, and settings —
+// for moving all data to another device without a backend. Not meant to be human-readable.
+export async function exportBackup(): Promise<void> {
+  const [cats, exps, keywords, recurring, settings] = await Promise.all([
+    db.select().from(categories),
+    db.select().from(expenses),
+    db.select().from(learnedKeywords),
+    db.select().from(recurringExpenses),
+    readSettings(),
+  ]);
+
+  const backup: Backup = {
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    settings,
+    categories: cats,
+    expenses: exps,
+    learnedKeywords: keywords,
+    recurringExpenses: recurring,
+  };
+
+  const path = `${FileSystem.documentDirectory}outflow-backup-${todayISO()}.json`;
+  await FileSystem.writeAsStringAsync(path, JSON.stringify(backup), { encoding: 'utf8' });
+
+  const canShare = await Sharing.isAvailableAsync();
+  if (!canShare) {
+    throw new Error("Sharing is not available on this device");
+  }
+  await Sharing.shareAsync(path, { mimeType: 'application/json', UTI: 'public.json' });
+}
+
+// Replaces all local data with the contents of a previously exported backup file.
+export function useImportBackup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<boolean> => {
+      const picked = await DocumentPicker.getDocumentAsync({ type: ["application/json", "public.json"], copyToCacheDirectory: true });
+      if (picked.canceled) return false;
+
+      const json = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: 'utf8' });
+      const data = JSON.parse(json);
+      if (!isValidBackup(data)) {
+        throw new Error("This file isn't a valid Outflow backup.");
+      }
+
+      await db.transaction(async (tx) => {
+        await tx.delete(expenses);
+        await tx.delete(recurringExpenses);
+        await tx.delete(learnedKeywords);
+        await tx.delete(categories);
+
+        if (data.categories.length) await tx.insert(categories).values(data.categories as any);
+        if (data.expenses.length) await tx.insert(expenses).values(data.expenses as any);
+        if (data.learnedKeywords.length) await tx.insert(learnedKeywords).values(data.learnedKeywords as any);
+        if (data.recurringExpenses.length) await tx.insert(recurringExpenses).values(data.recurringExpenses as any);
+      });
+
+      await writeSettings(data.settings);
+      return true;
+    },
+    onSuccess: (imported) => {
+      if (!imported) return;
+      queryClient.invalidateQueries();
+      queryClient.refetchQueries({ queryKey: ["daily-totals"] });
+      queryClient.refetchQueries({ queryKey: ["monthly-summary"] });
+    },
+  });
 }

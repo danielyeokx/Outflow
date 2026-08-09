@@ -2,9 +2,9 @@ import { useState } from "react";
 import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { ChevronRight, ChevronDown, Download, Trash2 } from "lucide-react-native";
+import { ChevronRight, ChevronDown, Download, Upload, Trash2 } from "lucide-react-native";
 import { useCategories, useDefaultCurrency, useColorTheme } from "../../lib/queries";
-import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, useSetColorTheme, exportExpensesCSV } from "../../lib/mutations";
+import { useSetDefaultCurrency, useClearAllData, useClearAllKeywords, useResetCategories, useSetColorTheme, useImportBackup, exportExpensesCSV, exportBackup } from "../../lib/mutations";
 import { T, getCategoryColor, COLOR_THEMES } from "../../lib/theme";
 import { CURRENCIES } from "../../lib/rates";
 import DotGrid from "../../components/DotGrid";
@@ -53,8 +53,10 @@ export default function SettingsScreen() {
   const { mutate: resetCategories, isPending: resettingCategories } = useResetCategories();
   const { data: colorTheme = "neutral" } = useColorTheme();
   const { mutate: setColorTheme } = useSetColorTheme();
+  const { mutate: importBackup, isPending: importing } = useImportBackup();
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportingBackup, setExportingBackup] = useState(false);
 
   function handleExport() {
     setExporting(true);
@@ -64,6 +66,39 @@ export default function SettingsScreen() {
         Alert.alert("Export failed", e?.message ?? "Could not export data.");
       })
       .finally(() => setExporting(false));
+  }
+
+  function handleExportBackup() {
+    setExportingBackup(true);
+    exportBackup()
+      .catch((e) => {
+        console.error("[outflow] backup export failed:", e);
+        Alert.alert("Export failed", e?.message ?? "Could not export backup.");
+      })
+      .finally(() => setExportingBackup(false));
+  }
+
+  function handleImportBackup() {
+    Alert.alert(
+      "Import backup?",
+      "This replaces all current categories, expenses, recurring entries, keywords, and settings with the contents of the backup file. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Import", style: "destructive",
+          onPress: () =>
+            importBackup(undefined, {
+              onError: (e: any) => {
+                console.error("[outflow] backup import failed:", e);
+                Alert.alert("Import failed", e?.message ?? "Could not import backup.");
+              },
+              onSuccess: (imported) => {
+                if (imported) Alert.alert("Backup imported", "Your data has been restored.");
+              },
+            }),
+        },
+      ]
+    );
   }
 
   function handleClearKeywords() {
@@ -227,8 +262,8 @@ export default function SettingsScreen() {
         <View>
           <SectionLabel label="// DATA" />
           <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius }}>
-            {/* Export */}
-            <Pressable onPress={handleExport} disabled={exporting}>
+            {/* Export CSV */}
+            <Pressable onPress={handleExport} disabled={exporting} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
               {({ pressed }) => (
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: exporting ? 0.5 : 1 }}>
                   {exporting
@@ -240,42 +275,68 @@ export default function SettingsScreen() {
                 </View>
               )}
             </Pressable>
-          </View>
-          {/* Destructive actions — separate card */}
-          <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: T.border, borderRadius: T.radius, marginTop: 12 }}>
-            {/* Clear keywords */}
-            <Pressable onPress={handleClearKeywords} disabled={clearingKeywords} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
+            {/* Export backup */}
+            <Pressable onPress={handleExportBackup} disabled={exportingBackup} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
               {({ pressed }) => (
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: clearingKeywords ? 0.5 : 1 }}>
-                  {clearingKeywords
-                    ? <ActivityIndicator size="small" color="#666" style={{ marginRight: 12 }} />
-                    : <Trash2 size={15} color="#666" style={{ marginRight: 12 }} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: exportingBackup ? 0.5 : 1 }}>
+                  {exportingBackup
+                    ? <ActivityIndicator size="small" color={T.text.secondary} style={{ marginRight: 12 }} />
+                    : <Download size={15} color={T.text.secondary} style={{ marginRight: 12 }} />
                   }
-                  <Text style={{ color: '#666', fontSize: 13, flex: 1 }}>Clear All Keywords</Text>
+                  <Text style={{ color: T.text.primary, fontSize: 13, flex: 1 }}>Export Data & Settings</Text>
+                  <ChevronRight size={14} color={T.text.muted} />
+                </View>
+              )}
+            </Pressable>
+            {/* Import backup */}
+            <Pressable onPress={handleImportBackup} disabled={importing}>
+              {({ pressed }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: importing ? 0.5 : 1 }}>
+                  {importing
+                    ? <ActivityIndicator size="small" color={T.text.secondary} style={{ marginRight: 12 }} />
+                    : <Upload size={15} color={T.text.secondary} style={{ marginRight: 12 }} />
+                  }
+                  <Text style={{ color: T.text.primary, fontSize: 13, flex: 1 }}>Import Data & Settings</Text>
+                  <ChevronRight size={14} color={T.text.muted} />
+                </View>
+              )}
+            </Pressable>
+          </View>
+          {/* Destructive actions — separate card, styled red for danger */}
+          <View style={{ backgroundColor: T.surface, borderWidth: 1, borderColor: 'rgba(255,69,58,0.35)', borderRadius: T.radius, marginTop: 28 }}>
+            {/* Clear keywords */}
+            <Pressable onPress={handleClearKeywords} disabled={clearingKeywords} style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255,69,58,0.35)' }}>
+              {({ pressed }) => (
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? 'rgba(255,69,58,0.12)' : 'transparent', opacity: clearingKeywords ? 0.5 : 1 }}>
+                  {clearingKeywords
+                    ? <ActivityIndicator size="small" color="#FF453A" style={{ marginRight: 12 }} />
+                    : <Trash2 size={15} color="#FF453A" style={{ marginRight: 12 }} />
+                  }
+                  <Text style={{ color: '#FF453A', fontSize: 13, flex: 1 }}>Clear All Keywords</Text>
                 </View>
               )}
             </Pressable>
             {/* Reset categories */}
-            <Pressable onPress={handleResetCategories} disabled={resettingCategories} style={{ borderBottomWidth: 1, borderBottomColor: T.border }}>
+            <Pressable onPress={handleResetCategories} disabled={resettingCategories} style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255,69,58,0.35)' }}>
               {({ pressed }) => (
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: resettingCategories ? 0.5 : 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? 'rgba(255,69,58,0.12)' : 'transparent', opacity: resettingCategories ? 0.5 : 1 }}>
                   {resettingCategories
-                    ? <ActivityIndicator size="small" color="#666" style={{ marginRight: 12 }} />
-                    : <Trash2 size={15} color="#666" style={{ marginRight: 12 }} />
+                    ? <ActivityIndicator size="small" color="#FF453A" style={{ marginRight: 12 }} />
+                    : <Trash2 size={15} color="#FF453A" style={{ marginRight: 12 }} />
                   }
-                  <Text style={{ color: '#666', fontSize: 13, flex: 1 }}>Reset Categories to Defaults</Text>
+                  <Text style={{ color: '#FF453A', fontSize: 13, flex: 1 }}>Reset Categories to Defaults</Text>
                 </View>
               )}
             </Pressable>
             {/* Clear all */}
             <Pressable onPress={handleClearAll} disabled={clearing}>
               {({ pressed }) => (
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? T.elevated : 'transparent', opacity: clearing ? 0.5 : 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 14, backgroundColor: pressed ? 'rgba(255,69,58,0.12)' : 'transparent', opacity: clearing ? 0.5 : 1 }}>
                   {clearing
-                    ? <ActivityIndicator size="small" color="#666" style={{ marginRight: 12 }} />
-                    : <Trash2 size={15} color="#666" style={{ marginRight: 12 }} />
+                    ? <ActivityIndicator size="small" color="#FF453A" style={{ marginRight: 12 }} />
+                    : <Trash2 size={15} color="#FF453A" style={{ marginRight: 12 }} />
                   }
-                  <Text style={{ color: '#666', fontSize: 13, flex: 1 }}>Clear All Data</Text>
+                  <Text style={{ color: '#FF453A', fontSize: 13, flex: 1 }}>Clear All Data</Text>
                 </View>
               )}
             </Pressable>
